@@ -94,6 +94,18 @@ h1 {
   font-variant-numeric: tabular-nums;
 }
 
+/* strip native number-input spinners — keep the decimal keypad, lose the arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 @keyframes scanline {
   0% {
     top: 6%;
