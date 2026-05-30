@@ -1,18 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  Camera,
-  Keyboard,
-  Loader2,
-  ScanBarcode,
-  FileText,
-  Sparkles,
-  ChevronRight,
-} from "lucide-react";
+import { Camera, Keyboard, Loader2, ScanBarcode } from "lucide-react";
 import { logScannedProduct } from "./actions";
-import { LabelOcr } from "@/components/scan/LabelOcr";
-import { MealPhoto } from "@/components/scan/MealPhoto";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -30,12 +20,7 @@ const NUTRIENT_META: Record<string, { label: string; unit: string }> = {
   sodium: { label: "Sodium", unit: "mg" },
 };
 
-const selectClass =
-  "h-11 w-full rounded-xl border border-line bg-surface/60 px-3 dark:border-line";
-const optionCard =
-  "flex w-full items-center gap-3 rounded-2xl border border-line bg-surface/40 p-4 text-left transition-colors hover:bg-surface/70 active:scale-[0.99]";
-const iconWrap =
-  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-leaf/10 text-leaf";
+const selectClass = "h-11 w-full rounded-xl border border-line bg-surface/60 px-3";
 
 interface Product {
   barcode: string;
@@ -54,14 +39,11 @@ type ApiResult =
   | { status: "not_found"; barcode: string };
 
 export default function ScanPage() {
-  const [mode, setMode] = useState<"choose" | "camera" | "manual">("choose");
+  const [mode, setMode] = useState<"idle" | "camera" | "manual">("idle");
   const [manualCode, setManualCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ApiResult | null>(null);
-  const [labelMode, setLabelMode] = useState(false);
-  const [labelBarcode, setLabelBarcode] = useState<string | undefined>(undefined);
-  const [photoMode, setPhotoMode] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   async function resolve(rawBarcode: string) {
@@ -133,7 +115,7 @@ export default function ScanPage() {
     setResult(null);
     setError(null);
     setManualCode("");
-    setMode("choose");
+    setMode("idle");
   }
 
   const product: Product | null =
@@ -143,49 +125,11 @@ export default function ScanPage() {
         ? result.resolved
         : null;
 
-  if (labelMode) {
-    return (
-      <div className="space-y-6">
-        <header>
-          <p className="eyebrow">Capture</p>
-          <h1 className="text-2xl font-semibold tracking-tight">Read a label</h1>
-        </header>
-        <button
-          type="button"
-          onClick={() => setLabelMode(false)}
-          className="text-sm font-medium text-muted"
-        >
-          ← Back
-        </button>
-        <LabelOcr barcode={labelBarcode} />
-      </div>
-    );
-  }
-
-  if (photoMode) {
-    return (
-      <div className="space-y-6">
-        <header>
-          <p className="eyebrow">Capture</p>
-          <h1 className="text-2xl font-semibold tracking-tight">Meal photo</h1>
-        </header>
-        <button
-          type="button"
-          onClick={() => setPhotoMode(false)}
-          className="text-sm font-medium text-muted"
-        >
-          ← Back
-        </button>
-        <MealPhoto />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <header>
         <p className="eyebrow">Capture</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Add food</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Scan barcode</h1>
       </header>
 
       {error && (
@@ -286,17 +230,12 @@ export default function ScanPage() {
         <div className="space-y-4 rounded-3xl border border-dashed border-line p-6 text-center">
           <p className="text-sm text-muted">
             No match for <span className="font-medium text-ink">{result.barcode}</span> in Open
-            Food Facts or USDA. Common for Thai products — try the label instead.
+            Food Facts or USDA. Common for Thai products — read the label with AI instead.
           </p>
           <div className="flex flex-col gap-2">
-            <Button
-              onClick={() => {
-                setLabelBarcode(result.barcode);
-                setLabelMode(true);
-              }}
-            >
-              <Camera className="h-4 w-4" /> Read the label
-            </Button>
+            <a href={`/analyze?tab=label&barcode=${result.barcode}`}>
+              <Button className="w-full">Read the label (AI)</Button>
+            </a>
             <div className="flex justify-center gap-2">
               <Button variant="outline" onClick={reset}>
                 Try again
@@ -309,52 +248,25 @@ export default function ScanPage() {
         </div>
       )}
 
-      {/* Method chooser / camera / manual */}
+      {/* Idle / camera / manual */}
       {!loading && !result && (
         <>
-          {mode === "choose" && (
-            <div className="space-y-3">
-              <button type="button" onClick={() => setMode("camera")} className={optionCard}>
-                <span className={iconWrap}>
-                  <ScanBarcode className="h-5 w-5" />
-                </span>
-                <span className="flex-1">
-                  <span className="block font-medium">Scan a barcode</span>
-                  <span className="block text-xs text-muted">Point your camera at the product</span>
-                </span>
-                <ChevronRight className="h-4 w-4 text-muted" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setLabelBarcode(undefined);
-                  setLabelMode(true);
-                }}
-                className={optionCard}
-              >
-                <span className={iconWrap}>
-                  <FileText className="h-5 w-5" />
-                </span>
-                <span className="flex-1">
-                  <span className="block font-medium">Read a nutrition label</span>
-                  <span className="block text-xs text-muted">
-                    Photograph the label — Thai or English
-                  </span>
-                </span>
-                <ChevronRight className="h-4 w-4 text-muted" />
-              </button>
-
-              <button type="button" onClick={() => setPhotoMode(true)} className={optionCard}>
-                <span className={iconWrap}>
-                  <Sparkles className="h-5 w-5" />
-                </span>
-                <span className="flex-1">
-                  <span className="block font-medium">Snap a meal</span>
-                  <span className="block text-xs text-muted">Let AI estimate the nutrients</span>
-                </span>
-                <ChevronRight className="h-4 w-4 text-muted" />
-              </button>
+          {mode === "idle" && (
+            <div className="space-y-5 rounded-3xl border border-dashed border-line p-8 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-leaf/10 text-leaf">
+                <ScanBarcode className="h-7 w-7" />
+              </div>
+              <p className="text-sm text-muted">
+                Scan a product barcode for an instant, free lookup.
+              </p>
+              <div className="flex flex-col gap-2">
+                <Button onClick={() => setMode("camera")}>
+                  <Camera className="h-4 w-4" /> Open camera
+                </Button>
+                <Button variant="outline" onClick={() => setMode("manual")}>
+                  <Keyboard className="h-4 w-4" /> Enter manually
+                </Button>
+              </div>
             </div>
           )}
 
@@ -380,11 +292,11 @@ export default function ScanPage() {
               </div>
               <p className="text-center text-xs text-muted">Center the barcode in the frame</p>
               <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => setMode("choose")}>
+                <Button variant="outline" className="flex-1" onClick={() => setMode("idle")}>
                   Back
                 </Button>
                 <Button variant="outline" className="flex-1" onClick={() => setMode("manual")}>
-                  <Keyboard className="h-4 w-4" /> Enter manually
+                  <Keyboard className="h-4 w-4" /> Manual
                 </Button>
               </div>
             </div>
@@ -411,7 +323,7 @@ export default function ScanPage() {
                   type="button"
                   variant="outline"
                   className="flex-1"
-                  onClick={() => setMode("choose")}
+                  onClick={() => setMode("idle")}
                 >
                   Back
                 </Button>

@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, NotebookPen, ScanLine, Apple, Settings } from "lucide-react";
+import { Home, NotebookPen, ScanBarcode, Sparkles, Apple, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/today", label: "Today", icon: Home },
   { href: "/log", label: "Log", icon: NotebookPen },
-  { href: "/scan", label: "Scan", icon: ScanLine },
+  { href: "/scan", label: "Scan", icon: ScanBarcode },
+  { href: "/analyze", label: "AI", icon: Sparkles },
   { href: "/foods", label: "Foods", icon: Apple },
   { href: "/settings", label: "You", icon: Settings },
 ];
@@ -37,7 +38,7 @@ export function BottomNav() {
                 <span className="absolute top-0 h-[2px] w-7 rounded-full bg-leaf" />
               )}
               <Icon className="h-5 w-5" strokeWidth={active ? 2.4 : 1.9} />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.08em]">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.06em]">
                 {label}
               </span>
             </Link>
