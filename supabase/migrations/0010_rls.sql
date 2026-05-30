@@ -5,6 +5,9 @@
 
 alter table public.profiles enable row level security;
 
+-- Grant table privileges to the authenticated role (RLS still gates which rows).
+grant select, insert, update on public.profiles to authenticated;
+
 drop policy if exists profiles_select_own on public.profiles;
 create policy profiles_select_own
   on public.profiles
