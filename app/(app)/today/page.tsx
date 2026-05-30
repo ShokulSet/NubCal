@@ -10,6 +10,7 @@ import { computeProgress } from "@/lib/nutrition/math";
 import { roundTo } from "@/lib/nutrition/format";
 import { NutrientRing } from "@/components/nutrition/NutrientRing";
 import { CalorieHero } from "@/components/nutrition/CalorieHero";
+import { CalorieTrend } from "@/components/nutrition/CalorieTrend";
 import type { TargetDirection } from "@/lib/nutrition/types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -22,24 +23,36 @@ export default async function TodayPage() {
   await ensureDefaultNutrients(supabase, userId);
   const eatenOn = todayInTimezone(APP_TZ);
 
-  const [{ data: nutrients }, { data: targets }, { data: totals }] = await Promise.all([
-    supabase
-      .from("nutrient_definitions")
-      .select("*")
-      .eq("user_id", userId)
-      .order("sort_order")
-      .order("display_name"),
-    supabase
-      .from("nutrient_targets")
-      .select("*")
-      .eq("user_id", userId)
-      .is("day_of_week", null),
-    supabase
-      .from("daily_nutrient_totals")
-      .select("nutrient_key, total")
-      .eq("user_id", userId)
-      .eq("eaten_on", eatenOn),
-  ]);
+  const trendBase = new Date(`${eatenOn}T00:00:00Z`);
+  trendBase.setUTCDate(trendBase.getUTCDate() - 13);
+  const trendFrom = trendBase.toISOString().slice(0, 10);
+
+  const [{ data: nutrients }, { data: targets }, { data: totals }, { data: history }] =
+    await Promise.all([
+      supabase
+        .from("nutrient_definitions")
+        .select("*")
+        .eq("user_id", userId)
+        .order("sort_order")
+        .order("display_name"),
+      supabase
+        .from("nutrient_targets")
+        .select("*")
+        .eq("user_id", userId)
+        .is("day_of_week", null),
+      supabase
+        .from("daily_nutrient_totals")
+        .select("nutrient_key, total")
+        .eq("user_id", userId)
+        .eq("eaten_on", eatenOn),
+      supabase
+        .from("daily_nutrient_totals")
+        .select("eaten_on, total")
+        .eq("user_id", userId)
+        .eq("nutrient_key", "energy_kcal")
+        .gte("eaten_on", trendFrom)
+        .lte("eaten_on", eatenOn),
+    ]);
 
   const totalByKey = new Map((totals ?? []).map((t) => [t.nutrient_key, Number(t.total ?? 0)]));
   const targetByNutrient = new Map((targets ?? []).map((t) => [t.nutrient_id, t]));
@@ -63,6 +76,18 @@ export default async function TodayPage() {
 
   const calorie = progresses.find((p) => p.n.is_energy);
   const macros = progresses.filter((p) => !p.n.is_energy);
+
+  const calorieTarget = calorie?.progress.target ?? null;
+  const kcalByDate = new Map(
+    (history ?? []).map((h) => [h.eaten_on, Number(h.total ?? 0)]),
+  );
+  const trendDays: { date: string; kcal: number }[] = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(`${eatenOn}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - i);
+    const iso = d.toISOString().slice(0, 10);
+    trendDays.push({ date: iso, kcal: kcalByDate.get(iso) ?? 0 });
+  }
 
   const dateLabel = new Date(`${eatenOn}T00:00:00`).toLocaleDateString("en-US", {
     weekday: "long",
@@ -127,6 +152,10 @@ export default async function TodayPage() {
           )}
         </section>
       )}
+
+      <section className="rounded-3xl border border-line bg-surface/50 p-5">
+        <CalorieTrend days={trendDays} target={calorieTarget} />
+      </section>
 
       <section className="space-y-3">
         <p className="eyebrow">Intake today</p>

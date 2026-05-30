@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+const selectClass =
+  "h-11 w-full rounded-xl border border-line bg-surface/60 px-3 text-sm text-ink";
+const SERVING_UNITS = ["g", "ml", "piece", "cup", "tbsp", "tsp"];
+
 export default async function NewFoodPage({
   searchParams,
 }: {
@@ -28,10 +32,10 @@ export default async function NewFoodPage({
     .order("display_name");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <header className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-muted">Foods</p>
+          <p className="eyebrow">Foods</p>
           <h1 className="text-2xl font-semibold tracking-tight">Add a food</h1>
         </div>
         <Link href="/foods" className="text-sm font-medium text-muted">
@@ -40,40 +44,48 @@ export default async function NewFoodPage({
       </header>
 
       {error && (
-        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/40">
+        <p className="rounded-xl border border-chili/25 bg-chili/[0.07] px-4 py-3 text-sm text-chili">
           {error}
         </p>
       )}
 
-      <form action={createFood} className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
-          <Input id="name" name="name" required placeholder="e.g. Greek yogurt" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="brand">Brand (optional)</Label>
-          <Input id="brand" name="brand" placeholder="e.g. Meiji" />
-        </div>
-        <div className="flex gap-3">
-          <div className="flex-1 space-y-2">
-            <Label htmlFor="serving_size">Serving size</Label>
-            <Input
-              id="serving_size"
-              name="serving_size"
-              type="number"
-              step="any"
-              inputMode="decimal"
-              defaultValue={100}
-            />
+      <form action={createFood} className="space-y-4">
+        <div className="space-y-3 rounded-2xl border border-line bg-surface/40 p-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input id="name" name="name" required placeholder="e.g. Greek yogurt" />
           </div>
-          <div className="w-28 space-y-2">
-            <Label htmlFor="serving_unit">Unit</Label>
-            <Input id="serving_unit" name="serving_unit" defaultValue="g" />
+          <div className="space-y-2">
+            <Label htmlFor="brand">Brand (optional)</Label>
+            <Input id="brand" name="brand" placeholder="e.g. Meiji" />
+          </div>
+          <div className="flex gap-3">
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="serving_size">Serving size</Label>
+              <Input
+                id="serving_size"
+                name="serving_size"
+                type="number"
+                step="any"
+                inputMode="decimal"
+                defaultValue={100}
+              />
+            </div>
+            <div className="w-28 space-y-2">
+              <Label htmlFor="serving_unit">Unit</Label>
+              <select id="serving_unit" name="serving_unit" className={selectClass}>
+                {SERVING_UNITS.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-black/10 p-4 dark:border-white/15">
-          <p className="text-sm font-semibold text-muted">Amount per serving</p>
+        <div className="space-y-3 rounded-2xl border border-line bg-surface/40 p-4">
+          <p className="eyebrow">Amount per serving</p>
           {(nutrients ?? []).map((n) => (
             <div key={n.id} className="flex items-center justify-between gap-3">
               <Label htmlFor={`amount_${n.id}`} className="min-w-0 flex-1 truncate">
