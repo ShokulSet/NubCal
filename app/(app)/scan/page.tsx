@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, Keyboard, Loader2, ScanLine } from "lucide-react";
 import { logScannedProduct } from "./actions";
 import { LabelOcr } from "@/components/scan/LabelOcr";
+import { MealPhoto } from "@/components/scan/MealPhoto";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -48,6 +49,7 @@ export default function ScanPage() {
   const [result, setResult] = useState<ApiResult | null>(null);
   const [labelMode, setLabelMode] = useState(false);
   const [labelBarcode, setLabelBarcode] = useState<string | undefined>(undefined);
+  const [photoMode, setPhotoMode] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   async function resolve(rawBarcode: string) {
@@ -143,6 +145,25 @@ export default function ScanPage() {
           ← Back to scan
         </button>
         <LabelOcr barcode={labelBarcode} />
+      </div>
+    );
+  }
+
+  if (photoMode) {
+    return (
+      <div className="space-y-6">
+        <header>
+          <p className="text-sm text-zinc-500">Scan</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Meal photo</h1>
+        </header>
+        <button
+          type="button"
+          onClick={() => setPhotoMode(false)}
+          className="text-sm font-medium text-zinc-500"
+        >
+          ← Back to scan
+        </button>
+        <MealPhoto />
       </div>
     );
   }
@@ -336,6 +357,13 @@ export default function ScanPage() {
             className="w-full text-center text-sm font-medium text-emerald-600"
           >
             Read a nutrition label instead
+          </button>
+          <button
+            type="button"
+            onClick={() => setPhotoMode(true)}
+            className="w-full text-center text-sm font-medium text-emerald-600"
+          >
+            Analyze a meal photo (AI)
           </button>
         </div>
       )}

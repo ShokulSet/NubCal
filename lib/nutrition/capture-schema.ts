@@ -58,3 +58,41 @@ export function atwaterKcal(n: Record<string, number>): number | null {
   if (n.protein == null && n.carbs == null && n.fat == null) return null;
   return 4 * (n.protein ?? 0) + 4 * (n.carbs ?? 0) + 9 * (n.fat ?? 0);
 }
+
+// ---- AI meal-photo analysis ----
+
+const mealNutrients = z
+  .object({
+    energy_kcal: amount,
+    protein: amount,
+    carbs: amount,
+    fat: amount,
+    saturated_fat: amount,
+    sugar: amount,
+    fiber: amount,
+    sodium: amount,
+  })
+  .partial()
+  .optional()
+  .default({});
+
+export const mealItemSchema = z.object({
+  name_en: z.string().optional().default(""),
+  name_th: z.string().nullable().optional(),
+  estimated_grams: z.number().optional().default(0),
+  grams_low: z.number().nullable().optional(),
+  grams_high: z.number().nullable().optional(),
+  household_unit: z.string().nullable().optional(),
+  nutrients: mealNutrients,
+  per_100g: mealNutrients,
+  confidence: z.number().optional().default(0.5),
+  assumptions: z.array(z.string()).optional().default([]),
+});
+export type MealItemResult = z.infer<typeof mealItemSchema>;
+
+export const mealResultSchema = z.object({
+  not_food: z.boolean().optional().default(false),
+  overall_confidence: z.number().optional().default(0.5),
+  items: z.array(mealItemSchema).optional().default([]),
+});
+export type MealResult = z.infer<typeof mealResultSchema>;

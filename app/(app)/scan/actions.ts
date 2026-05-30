@@ -142,3 +142,69 @@ export async function logScannedProduct(formData: FormData) {
   revalidatePath("/foods");
   redirect("/today");
 }
+
+interface MealPhotoItem {
+  name?: string;
+  grams?: number;
+  nutrients?: Record<string, number>;
+}
+
+/** Log AI-estimated meal-photo items into today's meal (each item is inline, food_id null). */
+export async function logMealPhoto(formData: FormData) {
+  const payloadRaw = String(formData.get("payload") ?? "");
+  const mealType = String(formData.get("meal_type") ?? "other");
+  if (!payloadRaw) return;
+
+  let items: MealPhotoItem[];
+  try {
+    items = JSON.parse(payloadRaw) as MealPhotoItem[];
+  } catch {
+    return;
+  }
+  if (!Array.isArray(items) || items.length === 0) return;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const eatenOn = todayInTimezone(APP_TZ);
+  const { data: meal } = await supabase
+    .from("meals")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("eaten_on", eatenOn)
+    .eq("meal_type", mealType)
+    .maybeSingle();
+
+  let mealId = meal?.id;
+  if (!mealId) {
+    const { data: created } = await supabase
+      .from("meals")
+      .insert({ user_id: user.id, eaten_on: eatenOn, meal_type: mealType, status: "logged" })
+      .select("id")
+      .single();
+    mealId = created?.id;
+  }
+  if (!mealId) return;
+
+  const rows = items
+    .filter((i) => i.name && i.nutrients && Object.keys(i.nutrients).length > 0)
+    .map((i) => ({
+      meal_id: mealId!,
+      user_id: user.id,
+      food_id: null,
+      name: String(i.name),
+      quantity: 1,
+      serving_size: Number(i.grams) || 100,
+      serving_unit: "g",
+      nutrients_snapshot: i.nutrients as Record<string, number>,
+    }));
+
+  if (rows.length) await supabase.from("meal_items").insert(rows);
+
+  revalidatePath("/today");
+  revalidatePath("/log");
+  redirect("/today");
+}
