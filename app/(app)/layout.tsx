@@ -1,7 +1,26 @@
 import { redirect } from "next/navigation";
+import { Trirong, IBM_Plex_Sans_Thai } from "next/font/google";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthUserId } from "@/lib/supabase/auth";
 import { BottomNav } from "@/components/nav/BottomNav";
+
+// Thai companions, scoped to the authed shell only (auth pages are English-only).
+// preload:false → the files download lazily, the first time a Thai glyph paints.
+const displayThai = Trirong({
+  weight: ["400", "500", "600"],
+  subsets: ["thai"],
+  variable: "--font-trirong",
+  display: "swap",
+  preload: false,
+});
+
+const sansThai = IBM_Plex_Sans_Thai({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["thai"],
+  variable: "--font-plexthai",
+  display: "swap",
+  preload: false,
+});
 
 export default async function AppLayout({
   children,
@@ -13,7 +32,9 @@ export default async function AppLayout({
   if (!userId) redirect("/login");
 
   return (
-    <div className="flex min-h-full flex-1 flex-col">
+    <div
+      className={`${displayThai.variable} ${sansThai.variable} flex min-h-full flex-1 flex-col`}
+    >
       <main className="mx-auto w-full max-w-md flex-1 px-4 pb-24 pt-6">
         {children}
       </main>
