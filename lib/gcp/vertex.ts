@@ -1,5 +1,6 @@
 import { writeFileSync } from "node:fs";
 import { GoogleGenAI } from "@google/genai";
+import { getVercelOidcToken } from "@vercel/functions/oidc";
 
 const project = process.env.GCP_PROJECT;
 const projectNumber = process.env.GCP_PROJECT_NUMBER;
@@ -27,10 +28,9 @@ function wifCredentials() {
 let client: GoogleGenAI | null = null;
 
 /** Vertex-backed GenAI client. WIF (Vercel OIDC) in production, ADC locally. */
-export function getVertex(): GoogleGenAI {
+export function getVertex(oidcToken?: string): GoogleGenAI {
   if (!project) throw new Error("GCP_PROJECT is not set");
 
-  const oidcToken = process.env.VERCEL_OIDC_TOKEN;
   if (oidcToken && projectNumber) {
     writeFileSync(OIDC_TOKEN_PATH, oidcToken);
     return new GoogleGenAI({
@@ -74,7 +74,13 @@ export interface GenerateJsonResult<T> {
 export async function generateJson<T = unknown>(
   opts: GenerateJsonOptions,
 ): Promise<GenerateJsonResult<T>> {
-  const ai = getVertex();
+  let oidcToken: string | undefined;
+  try {
+    oidcToken = await getVercelOidcToken();
+  } catch {
+    oidcToken = process.env.VERCEL_OIDC_TOKEN || undefined;
+  }
+  const ai = getVertex(oidcToken);
   const model = opts.model ?? VERTEX_MODEL;
 
   const parts: Part[] = [{ text: opts.prompt }];
