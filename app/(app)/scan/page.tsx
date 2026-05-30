@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera, Keyboard, Loader2, ScanLine } from "lucide-react";
+import {
+  Camera,
+  Keyboard,
+  Loader2,
+  ScanBarcode,
+  FileText,
+  Sparkles,
+  ChevronRight,
+} from "lucide-react";
 import { logScannedProduct } from "./actions";
 import { LabelOcr } from "@/components/scan/LabelOcr";
 import { MealPhoto } from "@/components/scan/MealPhoto";
@@ -22,6 +30,13 @@ const NUTRIENT_META: Record<string, { label: string; unit: string }> = {
   sodium: { label: "Sodium", unit: "mg" },
 };
 
+const selectClass =
+  "h-11 w-full rounded-xl border border-line bg-surface/60 px-3 dark:border-line";
+const optionCard =
+  "flex w-full items-center gap-3 rounded-2xl border border-line bg-surface/40 p-4 text-left transition-colors hover:bg-surface/70 active:scale-[0.99]";
+const iconWrap =
+  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-leaf/10 text-leaf";
+
 interface Product {
   barcode: string;
   source: string;
@@ -38,11 +53,8 @@ type ApiResult =
   | { status: "off" | "usda"; barcode: string; resolved: Product }
   | { status: "not_found"; barcode: string };
 
-const selectClass =
-  "h-11 w-full rounded-xl border border-black/10 bg-transparent px-3 dark:border-white/15";
-
 export default function ScanPage() {
-  const [mode, setMode] = useState<"camera" | "manual">("manual");
+  const [mode, setMode] = useState<"choose" | "camera" | "manual">("choose");
   const [manualCode, setManualCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,6 +133,7 @@ export default function ScanPage() {
     setResult(null);
     setError(null);
     setManualCode("");
+    setMode("choose");
   }
 
   const product: Product | null =
@@ -134,7 +147,7 @@ export default function ScanPage() {
     return (
       <div className="space-y-6">
         <header>
-          <p className="text-sm text-muted">Scan</p>
+          <p className="eyebrow">Capture</p>
           <h1 className="text-2xl font-semibold tracking-tight">Read a label</h1>
         </header>
         <button
@@ -142,7 +155,7 @@ export default function ScanPage() {
           onClick={() => setLabelMode(false)}
           className="text-sm font-medium text-muted"
         >
-          ← Back to scan
+          ← Back
         </button>
         <LabelOcr barcode={labelBarcode} />
       </div>
@@ -153,7 +166,7 @@ export default function ScanPage() {
     return (
       <div className="space-y-6">
         <header>
-          <p className="text-sm text-muted">Scan</p>
+          <p className="eyebrow">Capture</p>
           <h1 className="text-2xl font-semibold tracking-tight">Meal photo</h1>
         </header>
         <button
@@ -161,7 +174,7 @@ export default function ScanPage() {
           onClick={() => setPhotoMode(false)}
           className="text-sm font-medium text-muted"
         >
-          ← Back to scan
+          ← Back
         </button>
         <MealPhoto />
       </div>
@@ -171,49 +184,52 @@ export default function ScanPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-sm text-muted">Scan</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Scan a product</h1>
+        <p className="eyebrow">Capture</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Add food</h1>
       </header>
 
       {error && (
-        <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950/40">
+        <p className="rounded-xl border border-amber-500/25 bg-amber-500/[0.08] px-4 py-3 text-sm text-amber-700">
           {error}
         </p>
       )}
 
       {loading && (
-        <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted">
+        <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted">
           <Loader2 className="h-4 w-4 animate-spin" /> Looking up…
         </div>
       )}
 
-      {/* Result: found product */}
+      {/* Found product */}
       {!loading && product && (
-        <div className="space-y-4 rounded-2xl border border-black/10 p-4 dark:border-white/15">
+        <div className="space-y-4 rounded-3xl border border-line bg-surface/50 p-4">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="truncate text-lg font-semibold">{product.name}</p>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-muted">
                 {product.brand ? `${product.brand} · ` : ""}
                 {product.serving_size} {product.serving_unit} ·{" "}
                 {result?.status === "cache" ? "saved" : `via ${product.source}`}
               </p>
             </div>
-            <span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-medium text-emerald-700 dark:bg-emerald-950/50">
+            <span className="tnum rounded-full bg-leaf/10 px-2 py-1 font-mono text-[10px] font-medium text-leaf">
               {product.barcode}
             </span>
           </div>
 
-          <ul className="divide-y divide-black/5 rounded-xl bg-black/[.02] dark:divide-white/10 dark:bg-white/[.03]">
-            {Object.entries(product.nutrients).map(([key, value]) => {
+          <ul className="overflow-hidden rounded-xl border border-line">
+            {Object.entries(product.nutrients).map(([key, value], i) => {
               const meta = NUTRIENT_META[key];
               return (
-                <li key={key} className="flex justify-between px-3 py-2 text-sm">
-                  <span className="text-zinc-600 dark:text-zinc-300">
-                    {meta?.label ?? key}
-                  </span>
-                  <span className="font-medium">
-                    {value} {meta?.unit ?? ""}
+                <li
+                  key={key}
+                  className={`flex justify-between px-3 py-2 text-sm ${
+                    i > 0 ? "border-t border-line" : ""
+                  }`}
+                >
+                  <span className="text-ink/75">{meta?.label ?? key}</span>
+                  <span className="tnum font-mono">
+                    {value} <span className="text-muted">{meta?.unit ?? ""}</span>
                   </span>
                 </li>
               );
@@ -226,8 +242,7 @@ export default function ScanPage() {
               name="payload"
               value={JSON.stringify({
                 barcode: product.barcode,
-                source:
-                  result?.status === "cache" ? product.source : result?.status,
+                source: result?.status === "cache" ? product.source : result?.status,
                 name: product.name,
                 name_th: product.name_th ?? null,
                 brand: product.brand ?? null,
@@ -266,12 +281,12 @@ export default function ScanPage() {
         </div>
       )}
 
-      {/* Result: not found */}
+      {/* Not found */}
       {!loading && result?.status === "not_found" && (
-        <div className="space-y-4 rounded-2xl border border-dashed border-black/10 p-6 text-center dark:border-white/15">
+        <div className="space-y-4 rounded-3xl border border-dashed border-line p-6 text-center">
           <p className="text-sm text-muted">
-            No match for <span className="font-medium">{result.barcode}</span> in Open Food
-            Facts or USDA. Common for Thai products — label OCR arrives in Milestone&nbsp;4.
+            No match for <span className="font-medium text-ink">{result.barcode}</span> in Open
+            Food Facts or USDA. Common for Thai products — try the label instead.
           </p>
           <div className="flex flex-col gap-2">
             <Button
@@ -294,78 +309,119 @@ export default function ScanPage() {
         </div>
       )}
 
-      {/* Scanner / manual entry */}
+      {/* Method chooser / camera / manual */}
       {!loading && !result && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant={mode === "camera" ? "default" : "outline"}
-              onClick={() => setMode("camera")}
-            >
-              <Camera className="h-4 w-4" /> Camera
-            </Button>
-            <Button
-              variant={mode === "manual" ? "default" : "outline"}
-              onClick={() => setMode("manual")}
-            >
-              <Keyboard className="h-4 w-4" /> Manual
-            </Button>
-          </div>
+        <>
+          {mode === "choose" && (
+            <div className="space-y-3">
+              <button type="button" onClick={() => setMode("camera")} className={optionCard}>
+                <span className={iconWrap}>
+                  <ScanBarcode className="h-5 w-5" />
+                </span>
+                <span className="flex-1">
+                  <span className="block font-medium">Scan a barcode</span>
+                  <span className="block text-xs text-muted">Point your camera at the product</span>
+                </span>
+                <ChevronRight className="h-4 w-4 text-muted" />
+              </button>
 
-          {mode === "camera" ? (
-            <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-black">
-              <video
-                ref={videoRef}
-                playsInline
-                muted
-                autoPlay
-                className="h-full w-full object-cover"
-              />
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <div className="flex h-24 w-3/4 items-center justify-center rounded-xl border-2 border-white/70">
-                  <ScanLine className="h-6 w-6 text-white/70" />
+              <button
+                type="button"
+                onClick={() => {
+                  setLabelBarcode(undefined);
+                  setLabelMode(true);
+                }}
+                className={optionCard}
+              >
+                <span className={iconWrap}>
+                  <FileText className="h-5 w-5" />
+                </span>
+                <span className="flex-1">
+                  <span className="block font-medium">Read a nutrition label</span>
+                  <span className="block text-xs text-muted">
+                    Photograph the label — Thai or English
+                  </span>
+                </span>
+                <ChevronRight className="h-4 w-4 text-muted" />
+              </button>
+
+              <button type="button" onClick={() => setPhotoMode(true)} className={optionCard}>
+                <span className={iconWrap}>
+                  <Sparkles className="h-5 w-5" />
+                </span>
+                <span className="flex-1">
+                  <span className="block font-medium">Snap a meal</span>
+                  <span className="block text-xs text-muted">Let AI estimate the nutrients</span>
+                </span>
+                <ChevronRight className="h-4 w-4 text-muted" />
+              </button>
+            </div>
+          )}
+
+          {mode === "camera" && (
+            <div className="space-y-3">
+              <div className="relative aspect-[3/4] overflow-hidden rounded-3xl bg-ink">
+                <video
+                  ref={videoRef}
+                  playsInline
+                  muted
+                  autoPlay
+                  className="h-full w-full object-cover"
+                />
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <div className="relative h-44 w-10/12 max-w-xs">
+                    <span className="absolute left-0 top-0 h-7 w-7 rounded-tl-xl border-l-2 border-t-2 border-paper/90" />
+                    <span className="absolute right-0 top-0 h-7 w-7 rounded-tr-xl border-r-2 border-t-2 border-paper/90" />
+                    <span className="absolute bottom-0 left-0 h-7 w-7 rounded-bl-xl border-b-2 border-l-2 border-paper/90" />
+                    <span className="absolute bottom-0 right-0 h-7 w-7 rounded-br-xl border-b-2 border-r-2 border-paper/90" />
+                    <span className="animate-scanline absolute inset-x-3 h-0.5 rounded-full bg-leaf shadow-[0_0_14px_2px_rgba(31,107,67,0.7)]" />
+                  </div>
                 </div>
               </div>
+              <p className="text-center text-xs text-muted">Center the barcode in the frame</p>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => setMode("choose")}>
+                  Back
+                </Button>
+                <Button variant="outline" className="flex-1" onClick={() => setMode("manual")}>
+                  <Keyboard className="h-4 w-4" /> Enter manually
+                </Button>
+              </div>
             </div>
-          ) : (
+          )}
+
+          {mode === "manual" && (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 void resolve(manualCode);
               }}
-              className="space-y-3 rounded-2xl border border-black/10 p-4 dark:border-white/15"
+              className="space-y-3"
             >
+              <p className="text-sm text-muted">Type the digits printed under the barcode.</p>
               <Input
                 value={manualCode}
                 onChange={(e) => setManualCode(e.target.value)}
                 inputMode="numeric"
-                placeholder="Enter barcode digits"
+                placeholder="e.g. 8850123456789"
                 autoFocus
               />
-              <Button type="submit" className="w-full" disabled={!manualCode.trim()}>
-                Look up
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setMode("choose")}
+                >
+                  Back
+                </Button>
+                <Button type="submit" className="flex-1" disabled={!manualCode.trim()}>
+                  Look up
+                </Button>
+              </div>
             </form>
           )}
-
-          <button
-            type="button"
-            onClick={() => {
-              setLabelBarcode(undefined);
-              setLabelMode(true);
-            }}
-            className="w-full text-center text-sm font-medium text-leaf"
-          >
-            Read a nutrition label instead
-          </button>
-          <button
-            type="button"
-            onClick={() => setPhotoMode(true)}
-            className="w-full text-center text-sm font-medium text-leaf"
-          >
-            Analyze a meal photo (AI)
-          </button>
-        </div>
+        </>
       )}
     </div>
   );

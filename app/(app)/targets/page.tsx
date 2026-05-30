@@ -9,14 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const DIRECTIONS = [
-  { value: "at_least", label: "At least" },
-  { value: "at_most", label: "At most" },
-  { value: "around", label: "Around" },
-];
-
 const selectClass =
-  "h-10 rounded-xl border border-line bg-surface/60 px-3 text-sm text-ink";
+  "h-11 w-full rounded-xl border border-line bg-surface/60 px-3 text-sm text-ink";
 
 export default async function TargetsPage() {
   const supabase = await createClient();
@@ -44,58 +38,39 @@ export default async function TargetsPage() {
   const targetByNutrient = new Map((targets ?? []).map((t) => [t.nutrient_id, t]));
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-7">
       <header className="flex items-end justify-between">
         <div>
           <p className="eyebrow">Goals</p>
           <h1 className="text-2xl font-semibold tracking-tight">Targets</h1>
         </div>
-        <Link href="/today" className="text-sm font-medium text-leaf underline-offset-4 hover:underline">
+        <Link
+          href="/today"
+          className="text-sm font-medium text-leaf underline-offset-4 hover:underline"
+        >
           Done
         </Link>
       </header>
 
-      <p className="-mt-3 text-sm text-muted">
-        Set a daily goal per nutrient. Leave a value blank to clear it.
-      </p>
-
-      <section className="space-y-2.5">
+      <section className="space-y-2">
         {(nutrients ?? []).map((n) => {
           const t = targetByNutrient.get(n.id);
-          const direction = t?.direction ?? DEFAULT_DIRECTION[n.key] ?? "at_least";
           return (
             <div
               key={n.id}
-              className="space-y-3 rounded-2xl border border-line bg-surface/40 p-3.5"
+              className="flex items-center gap-2 rounded-2xl border border-line bg-surface/40 px-3 py-2"
             >
-              <div className="flex items-center justify-between">
-                <p className="font-medium">
-                  {n.display_name}
-                  <span className="ml-2 text-xs text-muted">{n.unit}</span>
-                </p>
-                <form action={deleteNutrient}>
-                  <input type="hidden" name="id" value={n.id} />
-                  <Button
-                    type="submit"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    aria-label={`Remove ${n.display_name}`}
-                  >
-                    <Trash2 className="h-4 w-4 text-muted" />
-                  </Button>
-                </form>
-              </div>
-
-              <form action={upsertTarget} className="flex items-center gap-2">
+              <form action={upsertTarget} className="flex flex-1 items-center gap-2">
                 <input type="hidden" name="nutrient_id" value={n.id} />
-                <select name="direction" defaultValue={direction} className={`${selectClass} flex-1`}>
-                  {DIRECTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
+                <input
+                  type="hidden"
+                  name="direction"
+                  value={DEFAULT_DIRECTION[n.key] ?? "at_least"}
+                />
+                <p className="min-w-0 flex-1 truncate text-sm font-medium">
+                  {n.display_name}
+                  <span className="ml-1.5 text-xs text-muted">{n.unit}</span>
+                </p>
                 <Input
                   name="target_value"
                   type="number"
@@ -103,10 +78,22 @@ export default async function TargetsPage() {
                   inputMode="decimal"
                   defaultValue={t?.target_value ?? ""}
                   placeholder="—"
-                  className="h-10 w-24 text-right"
+                  className="h-9 w-20 text-right"
                 />
                 <Button type="submit" size="sm">
                   Save
+                </Button>
+              </form>
+              <form action={deleteNutrient}>
+                <input type="hidden" name="id" value={n.id} />
+                <Button
+                  type="submit"
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9"
+                  aria-label={`Remove ${n.display_name}`}
+                >
+                  <Trash2 className="h-4 w-4 text-muted" />
                 </Button>
               </form>
             </div>
@@ -122,12 +109,17 @@ export default async function TargetsPage() {
         >
           <div className="space-y-2">
             <Label htmlFor="display_name">Name</Label>
-            <Input id="display_name" name="display_name" placeholder="e.g. Sugar, Fiber, Sodium" required />
+            <Input
+              id="display_name"
+              name="display_name"
+              placeholder="e.g. Sugar, Fiber, Sodium"
+              required
+            />
           </div>
           <div className="flex gap-3">
             <div className="flex-1 space-y-2">
               <Label htmlFor="unit">Unit</Label>
-              <select id="unit" name="unit" className={`${selectClass} h-11 w-full`}>
+              <select id="unit" name="unit" className={selectClass}>
                 {UNIT_OPTIONS.map((u) => (
                   <option key={u} value={u}>
                     {u}
@@ -137,12 +129,7 @@ export default async function TargetsPage() {
             </div>
             <div className="flex-1 space-y-2">
               <Label htmlFor="kind">Kind</Label>
-              <select
-                id="kind"
-                name="kind"
-                defaultValue="micro"
-                className={`${selectClass} h-11 w-full`}
-              >
+              <select id="kind" name="kind" defaultValue="micro" className={selectClass}>
                 {KIND_OPTIONS.map((k) => (
                   <option key={k} value={k}>
                     {k}

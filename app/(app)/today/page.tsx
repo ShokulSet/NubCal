@@ -98,10 +98,10 @@ export default async function TodayPage() {
           </Link>
         </div>
       ) : (
-        <section className="rounded-3xl border border-line bg-surface/50 px-4 py-8">
-          <div className="flex flex-wrap justify-center gap-x-5 gap-y-8">
+        <section className="rounded-3xl border border-line bg-surface/50 px-4 py-11">
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-10">
             {progresses.map(({ n, progress }) => (
-              <div key={n.id} className="w-24">
+              <div key={n.id} className="w-24 py-1">
                 <NutrientRing
                   label={n.display_name}
                   unit={n.unit}

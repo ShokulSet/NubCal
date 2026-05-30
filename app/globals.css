@@ -93,3 +93,22 @@ h1 {
 .tnum {
   font-variant-numeric: tabular-nums;
 }
+
+@keyframes scanline {
+  0% {
+    top: 6%;
+    opacity: 0.35;
+  }
+  50% {
+    top: 90%;
+    opacity: 1;
+  }
+  100% {
+    top: 6%;
+    opacity: 0.35;
+  }
+}
+
+.animate-scanline {
+  animation: scanline 2.2s ease-in-out infinite;
+}
