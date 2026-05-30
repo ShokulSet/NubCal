@@ -41,9 +41,15 @@ export async function updateSession(request: NextRequest) {
   );
 
   // IMPORTANT: do not insert logic between createServerClient and getUser().
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // A corrupted/expired session cookie can make getUser() throw; treat that as
+  // logged-out rather than crashing the whole request (a fresh login overwrites it).
+  let user = null;
+  try {
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch {
+    user = null;
+  }
 
   if (!user && !isPublicPath(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
