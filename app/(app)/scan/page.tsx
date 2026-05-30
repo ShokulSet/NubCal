@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, Keyboard, Loader2, ScanLine } from "lucide-react";
 import { logScannedProduct } from "./actions";
+import { LabelOcr } from "@/components/scan/LabelOcr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -45,6 +46,8 @@ export default function ScanPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ApiResult | null>(null);
+  const [labelMode, setLabelMode] = useState(false);
+  const [labelBarcode, setLabelBarcode] = useState<string | undefined>(undefined);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   async function resolve(rawBarcode: string) {
@@ -124,6 +127,25 @@ export default function ScanPage() {
       : result?.status === "off" || result?.status === "usda"
         ? result.resolved
         : null;
+
+  if (labelMode) {
+    return (
+      <div className="space-y-6">
+        <header>
+          <p className="text-sm text-zinc-500">Scan</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Read a label</h1>
+        </header>
+        <button
+          type="button"
+          onClick={() => setLabelMode(false)}
+          className="text-sm font-medium text-zinc-500"
+        >
+          ← Back to scan
+        </button>
+        <LabelOcr barcode={labelBarcode} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -230,13 +252,23 @@ export default function ScanPage() {
             No match for <span className="font-medium">{result.barcode}</span> in Open Food
             Facts or USDA. Common for Thai products — label OCR arrives in Milestone&nbsp;4.
           </p>
-          <div className="flex justify-center gap-2">
-            <Button variant="outline" onClick={reset}>
-              Try again
+          <div className="flex flex-col gap-2">
+            <Button
+              onClick={() => {
+                setLabelBarcode(result.barcode);
+                setLabelMode(true);
+              }}
+            >
+              <Camera className="h-4 w-4" /> Read the label
             </Button>
-            <a href="/foods/new">
-              <Button>Add manually</Button>
-            </a>
+            <div className="flex justify-center gap-2">
+              <Button variant="outline" onClick={reset}>
+                Try again
+              </Button>
+              <a href="/foods/new">
+                <Button variant="ghost">Add manually</Button>
+              </a>
+            </div>
           </div>
         </div>
       )}
@@ -294,6 +326,17 @@ export default function ScanPage() {
               </Button>
             </form>
           )}
+
+          <button
+            type="button"
+            onClick={() => {
+              setLabelBarcode(undefined);
+              setLabelMode(true);
+            }}
+            className="w-full text-center text-sm font-medium text-emerald-600"
+          >
+            Read a nutrition label instead
+          </button>
         </div>
       )}
     </div>

@@ -33,7 +33,7 @@ export async function logScannedProduct(formData: FormData) {
     return;
   }
   const barcode = normalizeBarcode(String(payload.barcode ?? ""));
-  if (!barcode) return;
+  const hasBarcode = barcode.length > 0;
 
   const supabase = await createClient();
   const {
@@ -45,12 +45,16 @@ export async function logScannedProduct(formData: FormData) {
 
   // Find-or-create the cached food for this barcode.
   let foodId: string | undefined;
-  const { data: existing } = await supabase
-    .from("foods")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("barcode", barcode)
-    .maybeSingle();
+  const existing = hasBarcode
+    ? (
+        await supabase
+          .from("foods")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("barcode", barcode)
+          .maybeSingle()
+      ).data
+    : null;
 
   if (existing) {
     foodId = existing.id;
@@ -63,7 +67,7 @@ export async function logScannedProduct(formData: FormData) {
       .from("foods")
       .insert({
         user_id: user.id,
-        barcode,
+        barcode: hasBarcode ? barcode : null,
         source,
         name: String(payload.name ?? `Product ${barcode}`),
         name_th: payload.name_th ?? null,
