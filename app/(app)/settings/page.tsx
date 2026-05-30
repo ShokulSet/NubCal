@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/button";
@@ -19,6 +21,23 @@ export default async function SettingsPage() {
         <p className="text-sm text-zinc-500">Signed in as</p>
         <p className="font-medium">{user?.email}</p>
       </div>
+
+      <nav className="overflow-hidden rounded-2xl border border-black/10 dark:border-white/15">
+        <Link
+          href="/targets"
+          className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[.03] dark:hover:bg-white/[.04]"
+        >
+          <span>Nutrient targets</span>
+          <ChevronRight className="h-4 w-4 text-zinc-400" />
+        </Link>
+        <Link
+          href="/foods"
+          className="flex items-center justify-between border-t border-black/5 px-4 py-3 text-sm hover:bg-black/[.03] dark:border-white/10 dark:hover:bg-white/[.04]"
+        >
+          <span>Your foods</span>
+          <ChevronRight className="h-4 w-4 text-zinc-400" />
+        </Link>
+      </nav>
 
       <form action={signOut}>
         <Button type="submit" variant="outline" className="w-full">
