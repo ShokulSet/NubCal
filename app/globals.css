@@ -29,9 +29,9 @@
   --color-amber: #a8680a;
   --color-background: var(--paper);
   --color-foreground: var(--ink);
-  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
-  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-dmmono), ui-monospace, monospace;
+  --font-display: var(--font-fraunces), var(--font-trirong), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-hanken), var(--font-plexthai), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-dmmono), var(--font-plexthai), ui-monospace, monospace;
 }
 
 html {
@@ -72,13 +72,13 @@ body::before {
 }
 
 h1 {
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-fraunces), var(--font-trirong), Georgia, serif;
   font-weight: 460;
   letter-spacing: -0.02em;
 }
 
 .font-display {
-  font-family: var(--font-fraunces), Georgia, serif;
+  font-family: var(--font-fraunces), var(--font-trirong), Georgia, serif;
 }
 
 /* small-caps editorial labels */

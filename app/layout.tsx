@@ -1,5 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Hanken_Grotesk, DM_Mono } from "next/font/google";
+import {
+  Fraunces,
+  Hanken_Grotesk,
+  DM_Mono,
+  Trirong,
+  IBM_Plex_Sans_Thai,
+} from "next/font/google";
 import { RegisterSW } from "@/components/pwa/RegisterSW";
 import "./globals.css";
 
@@ -19,6 +25,21 @@ const mono = DM_Mono({
   weight: ["400", "500"],
   subsets: ["latin"],
   variable: "--font-dmmono",
+  display: "swap",
+});
+
+// Thai companions — matched per-glyph via the font stacks in globals.css
+const displayThai = Trirong({
+  weight: ["400", "500", "600"],
+  subsets: ["thai"],
+  variable: "--font-trirong",
+  display: "swap",
+});
+
+const sansThai = IBM_Plex_Sans_Thai({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["thai"],
+  variable: "--font-plexthai",
   display: "swap",
 });
 
@@ -49,7 +70,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${display.variable} ${sans.variable} ${mono.variable} h-full antialiased`}
+      className={`${display.variable} ${sans.variable} ${mono.variable} ${displayThai.variable} ${sansThai.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
         {children}
