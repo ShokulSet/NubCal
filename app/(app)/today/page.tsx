@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthUserId } from "@/lib/supabase/auth";
 import { ensureDefaultNutrients } from "@/lib/data/setup";
 import { APP_TZ } from "@/lib/config";
 import { todayInTimezone } from "@/lib/nutrition/date";
@@ -15,30 +16,28 @@ import { cn } from "@/lib/utils";
 
 export default async function TodayPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const userId = await getAuthUserId(supabase);
+  if (!userId) redirect("/login");
 
-  await ensureDefaultNutrients(supabase, user.id);
+  await ensureDefaultNutrients(supabase, userId);
   const eatenOn = todayInTimezone(APP_TZ);
 
   const [{ data: nutrients }, { data: targets }, { data: totals }] = await Promise.all([
     supabase
       .from("nutrient_definitions")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .order("sort_order")
       .order("display_name"),
     supabase
       .from("nutrient_targets")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .is("day_of_week", null),
     supabase
       .from("daily_nutrient_totals")
       .select("nutrient_key, total")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("eaten_on", eatenOn),
   ]);
 

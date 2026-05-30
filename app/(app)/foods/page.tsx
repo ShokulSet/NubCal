@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus, Trash2, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthUserId } from "@/lib/supabase/auth";
 import { deleteFood } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,15 +14,13 @@ export default async function FoodsPage({
 }) {
   const { q } = await searchParams;
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const userId = await getAuthUserId(supabase);
+  if (!userId) redirect("/login");
 
   let query = supabase
     .from("foods")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
   const term = q?.trim().replace(/[%,()]/g, " ");

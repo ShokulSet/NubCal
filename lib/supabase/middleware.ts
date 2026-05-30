@@ -40,18 +40,33 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  // IMPORTANT: do not insert logic between createServerClient and getUser().
-  // A corrupted/expired session cookie can make getUser() throw; treat that as
-  // logged-out rather than crashing the whole request (a fresh login overwrites it).
-  let user = null;
+  // Fast auth: verify the JWT locally via getClaims (no network round-trip);
+  // fall back to getUser (which refreshes the session) only when the token is
+  // missing/expired. Both are wrapped so a corrupted cookie is treated as
+  // logged-out instead of crashing the request.
+  let userId: string | null = null;
   try {
-    const result = await supabase.auth.getUser();
-    user = result.data.user;
+    const { data } = await supabase.auth.getClaims();
+    const claims = data?.claims as { sub?: string; exp?: number } | undefined;
+    if (
+      claims?.sub &&
+      (typeof claims.exp !== "number" || claims.exp * 1000 > Date.now())
+    ) {
+      userId = claims.sub;
+    }
   } catch {
-    user = null;
+    userId = null;
+  }
+  if (!userId) {
+    try {
+      const result = await supabase.auth.getUser();
+      userId = result.data.user?.id ?? null;
+    } catch {
+      userId = null;
+    }
   }
 
-  if (!user && !isPublicPath(request.nextUrl.pathname)) {
+  if (!userId && !isPublicPath(request.nextUrl.pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

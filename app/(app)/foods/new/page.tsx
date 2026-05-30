@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getAuthUserId } from "@/lib/supabase/auth";
 import { ensureDefaultNutrients } from "@/lib/data/setup";
 import { createFood } from "../actions";
 import { Button } from "@/components/ui/button";
@@ -15,16 +16,14 @@ export default async function NewFoodPage({
   const { error } = await searchParams;
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const userId = await getAuthUserId(supabase);
+  if (!userId) redirect("/login");
 
-  await ensureDefaultNutrients(supabase, user.id);
+  await ensureDefaultNutrients(supabase, userId);
   const { data: nutrients } = await supabase
     .from("nutrient_definitions")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .order("sort_order")
     .order("display_name");
 
