@@ -8,6 +8,7 @@ import { todayInTimezone } from "@/lib/nutrition/date";
 import { computeProgress } from "@/lib/nutrition/math";
 import { roundTo } from "@/lib/nutrition/format";
 import { NutrientRing } from "@/components/nutrition/NutrientRing";
+import { CalorieHero } from "@/components/nutrition/CalorieHero";
 import type { TargetDirection } from "@/lib/nutrition/types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -61,6 +62,9 @@ export default async function TodayPage() {
     (p) => p.progress.status === "met" || p.progress.status === "on_track",
   ).length;
 
+  const calorie = progresses.find((p) => p.n.is_energy);
+  const macros = progresses.filter((p) => !p.n.is_energy);
+
   const dateLabel = new Date(`${eatenOn}T00:00:00`).toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
@@ -98,18 +102,30 @@ export default async function TodayPage() {
           </Link>
         </div>
       ) : (
-        <section className="rounded-3xl border border-line bg-surface/50 px-4 py-11">
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-10">
-            {progresses.map(({ n, progress }) => (
-              <div key={n.id} className="w-24 py-1">
-                <NutrientRing
-                  label={n.display_name}
-                  unit={n.unit}
-                  progress={progress}
-                />
-              </div>
-            ))}
-          </div>
+        <section className="overflow-hidden rounded-3xl border border-line bg-surface/50">
+          {calorie && (
+            <div className="p-5">
+              <CalorieHero progress={calorie.progress} />
+            </div>
+          )}
+          {macros.length > 0 && (
+            <div
+              className={cn(
+                "flex flex-wrap justify-center gap-x-6 gap-y-8 px-4 py-8",
+                calorie && "border-t border-line",
+              )}
+            >
+              {macros.map(({ n, progress }) => (
+                <div key={n.id} className="w-24">
+                  <NutrientRing
+                    label={n.display_name}
+                    unit={n.unit}
+                    progress={progress}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
