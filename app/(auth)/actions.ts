@@ -33,13 +33,19 @@ export async function signUp(formData: FormData) {
 
   const origin = await getOrigin();
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: { emailRedirectTo: `${origin}/auth/confirm?next=/today` },
   });
   if (error) {
     redirect(`/signup?error=${encodeURIComponent(error.message)}`);
+  }
+
+  // Email confirmation off -> a session is returned, so log straight in.
+  if (data.session) {
+    revalidatePath("/", "layout");
+    redirect("/today");
   }
 
   redirect(
