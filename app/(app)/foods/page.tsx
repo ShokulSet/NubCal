@@ -22,7 +22,7 @@ export default async function FoodsPage() {
     <div className="space-y-6">
       <header className="flex items-end justify-between">
         <div>
-          <p className="text-sm text-zinc-500">Foods</p>
+          <p className="text-sm text-muted">Foods</p>
           <h1 className="text-2xl font-semibold tracking-tight">Your foods</h1>
         </div>
         <Link href="/foods/new">
@@ -33,7 +33,7 @@ export default async function FoodsPage() {
       </header>
 
       {!foods || foods.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-black/10 p-8 text-center text-sm text-zinc-500 dark:border-white/15">
+        <div className="rounded-2xl border border-dashed border-black/10 p-8 text-center text-sm text-muted dark:border-white/15">
           No foods yet. Add one to start logging.
         </div>
       ) : (
@@ -48,7 +48,7 @@ export default async function FoodsPage() {
               >
                 <div className="min-w-0">
                   <p className="truncate font-medium">{f.name}</p>
-                  <p className="text-xs text-zinc-400">
+                  <p className="text-xs text-muted">
                     {f.brand ? `${f.brand} · ` : ""}
                     {f.serving_size} {f.serving_unit}
                     {kcal != null ? ` · ${Math.round(kcal)} kcal` : ""}
@@ -57,7 +57,7 @@ export default async function FoodsPage() {
                 <form action={deleteFood}>
                   <input type="hidden" name="id" value={f.id} />
                   <Button type="submit" variant="ghost" size="icon" aria-label="Delete food">
-                    <Trash2 className="h-4 w-4 text-zinc-400" />
+                    <Trash2 className="h-4 w-4 text-muted" />
                   </Button>
                 </form>
               </li>

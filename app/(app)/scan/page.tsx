@@ -134,13 +134,13 @@ export default function ScanPage() {
     return (
       <div className="space-y-6">
         <header>
-          <p className="text-sm text-zinc-500">Scan</p>
+          <p className="text-sm text-muted">Scan</p>
           <h1 className="text-2xl font-semibold tracking-tight">Read a label</h1>
         </header>
         <button
           type="button"
           onClick={() => setLabelMode(false)}
-          className="text-sm font-medium text-zinc-500"
+          className="text-sm font-medium text-muted"
         >
           ← Back to scan
         </button>
@@ -153,13 +153,13 @@ export default function ScanPage() {
     return (
       <div className="space-y-6">
         <header>
-          <p className="text-sm text-zinc-500">Scan</p>
+          <p className="text-sm text-muted">Scan</p>
           <h1 className="text-2xl font-semibold tracking-tight">Meal photo</h1>
         </header>
         <button
           type="button"
           onClick={() => setPhotoMode(false)}
-          className="text-sm font-medium text-zinc-500"
+          className="text-sm font-medium text-muted"
         >
           ← Back to scan
         </button>
@@ -171,7 +171,7 @@ export default function ScanPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-sm text-zinc-500">Scan</p>
+        <p className="text-sm text-muted">Scan</p>
         <h1 className="text-2xl font-semibold tracking-tight">Scan a product</h1>
       </header>
 
@@ -182,7 +182,7 @@ export default function ScanPage() {
       )}
 
       {loading && (
-        <div className="flex items-center justify-center gap-2 py-10 text-sm text-zinc-500">
+        <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted">
           <Loader2 className="h-4 w-4 animate-spin" /> Looking up…
         </div>
       )}
@@ -269,7 +269,7 @@ export default function ScanPage() {
       {/* Result: not found */}
       {!loading && result?.status === "not_found" && (
         <div className="space-y-4 rounded-2xl border border-dashed border-black/10 p-6 text-center dark:border-white/15">
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-muted">
             No match for <span className="font-medium">{result.barcode}</span> in Open Food
             Facts or USDA. Common for Thai products — label OCR arrives in Milestone&nbsp;4.
           </p>
@@ -354,14 +354,14 @@ export default function ScanPage() {
               setLabelBarcode(undefined);
               setLabelMode(true);
             }}
-            className="w-full text-center text-sm font-medium text-emerald-600"
+            className="w-full text-center text-sm font-medium text-leaf"
           >
             Read a nutrition label instead
           </button>
           <button
             type="button"
             onClick={() => setPhotoMode(true)}
-            className="w-full text-center text-sm font-medium text-emerald-600"
+            className="w-full text-center text-sm font-medium text-leaf"
           >
             Analyze a meal photo (AI)
           </button>

@@ -69,7 +69,7 @@ export function LabelOcr({ barcode }: { barcode?: string }) {
 
   if (stage === "processing") {
     return (
-      <div className="flex items-center justify-center gap-2 py-12 text-sm text-zinc-500">
+      <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted">
         <Loader2 className="h-4 w-4 animate-spin" /> Reading the label…
       </div>
     );
@@ -136,7 +136,7 @@ export function LabelOcr({ barcode }: { barcode?: string }) {
         </div>
 
         <div className="space-y-3 rounded-2xl border border-black/10 p-4 dark:border-white/15">
-          <p className="text-sm font-semibold text-zinc-500">Per serving</p>
+          <p className="text-sm font-semibold text-muted">Per serving</p>
           {NUTRIENT_ORDER.map((key) => (
             <div key={key} className="flex items-center justify-between gap-3">
               <Label htmlFor={`ocr-${key}`} className="min-w-0 flex-1 truncate">
@@ -153,7 +153,7 @@ export function LabelOcr({ barcode }: { barcode?: string }) {
                   placeholder="—"
                   className="h-10 w-24 text-right"
                 />
-                <span className="w-9 text-xs text-zinc-400">{NUTRIENT_META[key].unit}</span>
+                <span className="w-9 text-xs text-muted">{NUTRIENT_META[key].unit}</span>
               </div>
             </div>
           ))}
@@ -207,9 +207,9 @@ export function LabelOcr({ barcode }: { barcode?: string }) {
         </p>
       )}
       <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-black/10 p-10 text-center dark:border-white/15">
-        <Camera className="h-8 w-8 text-zinc-400" />
+        <Camera className="h-8 w-8 text-muted" />
         <span className="text-sm font-medium">Take a photo of the nutrition label</span>
-        <span className="text-xs text-zinc-400">
+        <span className="text-xs text-muted">
           Straight-on, label filling the frame. Thai or English.
         </span>
         <input

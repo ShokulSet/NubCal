@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { SlidersHorizontal, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ensureDefaultNutrients } from "@/lib/data/setup";
 import { APP_TZ } from "@/lib/config";
@@ -10,6 +10,7 @@ import { roundTo } from "@/lib/nutrition/format";
 import { NutrientRing } from "@/components/nutrition/NutrientRing";
 import type { TargetDirection } from "@/lib/nutrition/types";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export default async function TodayPage() {
   const supabase = await createClient();
@@ -40,77 +41,100 @@ export default async function TodayPage() {
       .eq("eaten_on", eatenOn),
   ]);
 
-  const totalByKey = new Map(
-    (totals ?? []).map((t) => [t.nutrient_key, Number(t.total ?? 0)]),
-  );
+  const totalByKey = new Map((totals ?? []).map((t) => [t.nutrient_key, Number(t.total ?? 0)]));
   const targetByNutrient = new Map((targets ?? []).map((t) => [t.nutrient_id, t]));
-  const targeted = (nutrients ?? []).filter((n) => targetByNutrient.has(n.id));
+
+  const progresses = (nutrients ?? [])
+    .filter((n) => targetByNutrient.has(n.id))
+    .map((n) => {
+      const t = targetByNutrient.get(n.id)!;
+      return {
+        n,
+        progress: computeProgress(
+          totalByKey.get(n.key) ?? 0,
+          t.target_value ?? null,
+          t.direction as TargetDirection,
+        ),
+      };
+    });
+  const onTrack = progresses.filter(
+    (p) => p.progress.status === "met" || p.progress.status === "on_track",
+  ).length;
 
   const dateLabel = new Date(`${eatenOn}T00:00:00`).toLocaleDateString("en-US", {
     weekday: "long",
-    month: "short",
+    month: "long",
     day: "numeric",
   });
 
   return (
-    <div className="space-y-8">
-      <header className="flex items-end justify-between">
-        <div>
-          <p className="text-sm text-zinc-500">{dateLabel}</p>
-          <h1 className="text-2xl font-semibold tracking-tight">Today</h1>
+    <div className="space-y-9">
+      <header className="space-y-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="eyebrow">{dateLabel}</p>
+            <h1 className="mt-1 text-[2.6rem] leading-[1.02]">Today</h1>
+          </div>
+          <Link
+            href="/targets"
+            className="mt-2 text-sm font-medium text-leaf underline-offset-4 hover:underline"
+          >
+            Targets
+          </Link>
         </div>
-        <Link
-          href="/targets"
-          className="inline-flex items-center gap-1 text-sm font-medium text-emerald-600"
-        >
-          <SlidersHorizontal className="h-4 w-4" /> Targets
-        </Link>
+        {progresses.length > 0 && (
+          <p className="text-sm text-muted">
+            <span className="tnum font-mono text-ink">{onTrack}</span> of{" "}
+            <span className="tnum font-mono text-ink">{progresses.length}</span> targets on track
+          </p>
+        )}
       </header>
 
-      {targeted.length === 0 ? (
-        <div className="space-y-4 rounded-2xl border border-dashed border-black/10 p-8 text-center dark:border-white/15">
-          <p className="text-sm text-zinc-500">Set a target to see your progress rings.</p>
+      {progresses.length === 0 ? (
+        <div className="space-y-4 rounded-3xl border border-line bg-surface/60 p-10 text-center">
+          <p className="text-sm text-muted">Set a target to see your progress rings.</p>
           <Link href="/targets">
             <Button>Set targets</Button>
           </Link>
         </div>
       ) : (
-        <section className="grid grid-cols-3 gap-x-2 gap-y-6">
-          {targeted.map((n) => {
-            const t = targetByNutrient.get(n.id)!;
-            const progress = computeProgress(
-              totalByKey.get(n.key) ?? 0,
-              t.target_value ?? null,
-              t.direction as TargetDirection,
-            );
-            return (
+        <section className="rounded-3xl border border-line bg-surface/50 px-3 py-7">
+          <div className="grid grid-cols-3 gap-x-2 gap-y-7">
+            {progresses.map(({ n, progress }) => (
               <NutrientRing
                 key={n.id}
                 label={n.display_name}
                 unit={n.unit}
                 progress={progress}
               />
-            );
-          })}
+            ))}
+          </div>
         </section>
       )}
 
-      <section className="space-y-2">
-        <h2 className="text-sm font-semibold text-zinc-500">All intake today</h2>
-        <ul className="divide-y divide-black/5 overflow-hidden rounded-2xl border border-black/10 dark:divide-white/10 dark:border-white/15">
-          {(nutrients ?? []).map((n) => (
-            <li key={n.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
-              <span className="text-zinc-600 dark:text-zinc-300">{n.display_name}</span>
-              <span className="font-medium">
-                {roundTo(totalByKey.get(n.key) ?? 0, 1)} {n.unit}
+      <section className="space-y-3">
+        <p className="eyebrow">Intake today</p>
+        <ul className="overflow-hidden rounded-2xl border border-line bg-surface/40">
+          {(nutrients ?? []).map((n, i) => (
+            <li
+              key={n.id}
+              className={cn(
+                "flex items-center justify-between px-4 py-3",
+                i > 0 && "border-t border-line",
+              )}
+            >
+              <span className="text-sm text-ink/80">{n.display_name}</span>
+              <span className="tnum font-mono text-sm text-ink">
+                {roundTo(totalByKey.get(n.key) ?? 0, 1)}{" "}
+                <span className="text-muted">{n.unit}</span>
               </span>
             </li>
           ))}
         </ul>
       </section>
 
-      <Link href="/log" className="fixed bottom-20 right-4 z-30" aria-label="Add to today">
-        <Button size="icon" className="h-14 w-14 rounded-full shadow-lg">
+      <Link href="/log" className="fixed bottom-24 right-5 z-30" aria-label="Add to today">
+        <Button size="icon" className="h-14 w-14 shadow-[0_16px_32px_-12px_rgba(31,107,67,0.65)]">
           <Plus className="h-6 w-6" />
         </Button>
       </Link>

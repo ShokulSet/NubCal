@@ -40,14 +40,14 @@ export default async function LogPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-sm text-zinc-500">Log · {eatenOn}</p>
+        <p className="text-sm text-muted">Log · {eatenOn}</p>
         <h1 className="text-2xl font-semibold tracking-tight">Add to today</h1>
       </header>
 
       {!foods || foods.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-black/10 p-6 text-center text-sm text-zinc-500 dark:border-white/15">
+        <div className="rounded-2xl border border-dashed border-black/10 p-6 text-center text-sm text-muted dark:border-white/15">
           Add a food first on the{" "}
-          <a className="font-medium text-emerald-600" href="/foods/new">
+          <a className="font-medium text-leaf" href="/foods/new">
             Foods
           </a>{" "}
           page.
@@ -89,9 +89,9 @@ export default async function LogPage() {
       )}
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold text-zinc-500">Today&apos;s items</h2>
+        <h2 className="text-sm font-semibold text-muted">Today&apos;s items</h2>
         {items.length === 0 ? (
-          <p className="text-sm text-zinc-400">Nothing logged yet.</p>
+          <p className="text-sm text-muted">Nothing logged yet.</p>
         ) : (
           <ul className="space-y-2">
             {items.map((it) => (
@@ -101,14 +101,14 @@ export default async function LogPage() {
               >
                 <div className="min-w-0">
                   <p className="truncate font-medium">{it.name}</p>
-                  <p className="text-xs text-zinc-400">
+                  <p className="text-xs text-muted">
                     {it.quantity} × {it.serving_size} {it.serving_unit} · {it.meal_type}
                   </p>
                 </div>
                 <form action={removeMealItem}>
                   <input type="hidden" name="id" value={it.id} />
                   <Button type="submit" variant="ghost" size="icon" aria-label="Remove item">
-                    <Trash2 className="h-4 w-4 text-zinc-400" />
+                    <Trash2 className="h-4 w-4 text-muted" />
                   </Button>
                 </form>
               </li>

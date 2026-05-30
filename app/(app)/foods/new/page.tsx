@@ -32,10 +32,10 @@ export default async function NewFoodPage({
     <div className="space-y-6">
       <header className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-zinc-500">Foods</p>
+          <p className="text-sm text-muted">Foods</p>
           <h1 className="text-2xl font-semibold tracking-tight">Add a food</h1>
         </div>
-        <Link href="/foods" className="text-sm font-medium text-zinc-500">
+        <Link href="/foods" className="text-sm font-medium text-muted">
           Cancel
         </Link>
       </header>
@@ -74,7 +74,7 @@ export default async function NewFoodPage({
         </div>
 
         <div className="space-y-3 rounded-2xl border border-black/10 p-4 dark:border-white/15">
-          <p className="text-sm font-semibold text-zinc-500">Amount per serving</p>
+          <p className="text-sm font-semibold text-muted">Amount per serving</p>
           {(nutrients ?? []).map((n) => (
             <div key={n.id} className="flex items-center justify-between gap-3">
               <Label htmlFor={`amount_${n.id}`} className="min-w-0 flex-1 truncate">
@@ -90,7 +90,7 @@ export default async function NewFoodPage({
                   placeholder="0"
                   className="h-10 w-24 text-right"
                 />
-                <span className="w-9 text-xs text-zinc-400">{n.unit}</span>
+                <span className="w-9 text-xs text-muted">{n.unit}</span>
               </div>
             </div>
           ))}

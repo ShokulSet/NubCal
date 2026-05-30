@@ -1,22 +1,37 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --paper: #f5efe4;
+  --surface: #fffdf8;
+  --ink: #221d15;
+  --muted: #8c8472;
+  --line: rgba(34, 29, 21, 0.13);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #14110c;
+    --surface: #1e1a13;
+    --ink: #efe6d5;
+    --muted: #9b9180;
+    --line: rgba(239, 230, 213, 0.14);
   }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-leaf: #1f6b43;
+  --color-chili: #c0410c;
+  --color-amber: #a8680a;
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-dmmono), ui-monospace, monospace;
 }
 
 html {
@@ -24,7 +39,57 @@ html {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--paper);
+  color: var(--ink);
   overscroll-behavior-y: none;
+  background-image:
+    radial-gradient(115% 85% at 100% -10%, color-mix(in srgb, var(--color-leaf) 9%, transparent), transparent 55%),
+    radial-gradient(95% 80% at -10% 110%, color-mix(in srgb, var(--color-amber) 8%, transparent), transparent 52%);
+  background-attachment: fixed;
+}
+
+/* paper grain */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-color-scheme: dark) {
+  body::before {
+    mix-blend-mode: screen;
+    opacity: 0.07;
+  }
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-leaf) 24%, transparent);
+}
+
+h1 {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 460;
+  letter-spacing: -0.02em;
+}
+
+.font-display {
+  font-family: var(--font-fraunces), Georgia, serif;
+}
+
+/* small-caps editorial labels */
+.eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
 }

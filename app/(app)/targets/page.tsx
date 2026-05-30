@@ -46,10 +46,10 @@ export default async function TargetsPage() {
     <div className="space-y-8">
       <header className="flex items-end justify-between">
         <div>
-          <p className="text-sm text-zinc-500">Targets</p>
+          <p className="text-sm text-muted">Targets</p>
           <h1 className="text-2xl font-semibold tracking-tight">Nutrient targets</h1>
         </div>
-        <Link href="/today" className="text-sm font-medium text-emerald-600">
+        <Link href="/today" className="text-sm font-medium text-leaf">
           Done
         </Link>
       </header>
@@ -68,7 +68,7 @@ export default async function TargetsPage() {
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className="truncate font-medium">{n.display_name}</p>
-                  <p className="text-xs text-zinc-400">{n.unit}</p>
+                  <p className="text-xs text-muted">{n.unit}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <select name="direction" defaultValue={direction} className={selectClass}>
@@ -98,7 +98,7 @@ export default async function TargetsPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-zinc-500">Add a custom nutrient</h2>
+        <h2 className="text-sm font-semibold text-muted">Add a custom nutrient</h2>
         <form
           action={addNutrient}
           className="space-y-3 rounded-2xl border border-black/10 p-4 dark:border-white/15"

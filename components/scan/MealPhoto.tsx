@@ -119,7 +119,7 @@ export function MealPhoto() {
 
   if (stage === "processing") {
     return (
-      <div className="flex items-center justify-center gap-2 py-12 text-sm text-zinc-500">
+      <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted">
         <Loader2 className="h-4 w-4 animate-spin" /> Analyzing your meal…
       </div>
     );
@@ -129,7 +129,7 @@ export function MealPhoto() {
     if (notFood || items.length === 0) {
       return (
         <div className="space-y-4 rounded-2xl border border-dashed border-black/10 p-6 text-center dark:border-white/15">
-          <p className="text-sm text-zinc-500">No food detected in that photo.</p>
+          <p className="text-sm text-muted">No food detected in that photo.</p>
           <Button onClick={() => setStage("capture")}>Try another photo</Button>
         </div>
       );
@@ -189,7 +189,7 @@ export function MealPhoto() {
                       className="h-10"
                     />
                   </div>
-                  <p className="flex-1 pb-2 text-xs text-zinc-500">
+                  <p className="flex-1 pb-2 text-xs text-muted">
                     {it.household ? `${it.household} · ` : ""}
                     {it.gramsLow != null && it.gramsHigh != null
                       ? `range ${it.gramsLow}–${it.gramsHigh} g`
@@ -197,7 +197,7 @@ export function MealPhoto() {
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-zinc-500">
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
                   <span className="font-semibold text-zinc-700 dark:text-zinc-300">
                     {Math.round(n.energy_kcal ?? 0)} kcal
                   </span>
