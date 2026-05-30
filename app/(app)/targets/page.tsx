@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ensureDefaultNutrients } from "@/lib/data/setup";
 import { DEFAULT_DIRECTION, UNIT_OPTIONS, KIND_OPTIONS } from "@/lib/nutrition/defaults";
-import { upsertTarget, addNutrient, deleteNutrient } from "./actions";
+import { addNutrient } from "./actions";
+import { TargetRow } from "@/components/targets/TargetRow";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,72 +42,45 @@ export default async function TargetsPage() {
     <div className="space-y-7">
       <header className="flex items-end justify-between">
         <div>
-          <p className="eyebrow">Goals</p>
-          <h1 className="text-2xl font-semibold tracking-tight">Targets</h1>
+          <p className="eyebrow">Daily goals</p>
+          <h1 className="text-[2.2rem] leading-none">Targets</h1>
         </div>
         <Link
           href="/today"
-          className="text-sm font-medium text-leaf underline-offset-4 hover:underline"
+          className="pb-1 text-sm font-medium text-leaf underline-offset-4 hover:underline"
         >
           Done
         </Link>
       </header>
 
-      <section className="space-y-2">
-        {(nutrients ?? []).map((n) => {
+      <div className="overflow-hidden rounded-3xl border border-line bg-surface/40">
+        {(nutrients ?? []).map((n, i) => {
           const t = targetByNutrient.get(n.id);
           return (
-            <div
-              key={n.id}
-              className="flex items-center gap-2 rounded-2xl border border-line bg-surface/40 px-3 py-2"
-            >
-              <form action={upsertTarget} className="flex flex-1 items-center gap-2">
-                <input type="hidden" name="nutrient_id" value={n.id} />
-                <input
-                  type="hidden"
-                  name="direction"
-                  value={DEFAULT_DIRECTION[n.key] ?? "at_least"}
-                />
-                <p className="min-w-0 flex-1 truncate text-sm font-medium">
-                  {n.display_name}
-                  <span className="ml-1.5 text-xs text-muted">{n.unit}</span>
-                </p>
-                <Input
-                  name="target_value"
-                  type="number"
-                  step="any"
-                  inputMode="decimal"
-                  defaultValue={t?.target_value ?? ""}
-                  placeholder="—"
-                  className="h-9 w-20 text-right"
-                />
-                <Button type="submit" size="sm">
-                  Save
-                </Button>
-              </form>
-              <form action={deleteNutrient}>
-                <input type="hidden" name="id" value={n.id} />
-                <Button
-                  type="submit"
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9"
-                  aria-label={`Remove ${n.display_name}`}
-                >
-                  <Trash2 className="h-4 w-4 text-muted" />
-                </Button>
-              </form>
+            <div key={n.id} className={i > 0 ? "border-t border-line" : ""}>
+              <TargetRow
+                nutrientId={n.id}
+                direction={DEFAULT_DIRECTION[n.key] ?? "at_least"}
+                name={n.display_name}
+                unit={n.unit}
+                initialValue={t?.target_value != null ? String(t.target_value) : ""}
+                index={i}
+              />
             </div>
           );
         })}
-      </section>
+      </div>
 
-      <section className="space-y-3">
-        <p className="eyebrow">Add a nutrient</p>
-        <form
-          action={addNutrient}
-          className="space-y-3 rounded-2xl border border-line bg-surface/40 p-4"
-        >
+      <p className="px-1 text-xs text-muted">
+        Tap a number to set a daily goal — it saves on its own. Clear it to remove the goal.
+      </p>
+
+      <details className="group overflow-hidden rounded-2xl border border-line bg-surface/40">
+        <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-medium text-leaf [&::-webkit-details-marker]:hidden">
+          <Plus className="h-4 w-4 transition-transform group-open:rotate-45" />
+          Add a nutrient
+        </summary>
+        <form action={addNutrient} className="space-y-3 border-t border-line p-4">
           <div className="space-y-2">
             <Label htmlFor="display_name">Name</Label>
             <Input
@@ -142,7 +116,7 @@ export default async function TargetsPage() {
             Add nutrient
           </Button>
         </form>
-      </section>
+      </details>
     </div>
   );
 }

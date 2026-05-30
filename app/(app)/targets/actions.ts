@@ -108,3 +108,83 @@ export async function deleteNutrient(formData: FormData) {
   revalidatePath("/today");
   revalidatePath("/foods");
 }
+
+/** Inline auto-save of a default target value (empty string clears it). */
+export async function setTargetValue(
+  nutrientId: string,
+  direction: string,
+  rawValue: string,
+) {
+  if (!nutrientId) return;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const raw = (rawValue ?? "").trim();
+  const dir = direction || "at_least";
+
+  if (raw === "") {
+    await supabase
+      .from("nutrient_targets")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("nutrient_id", nutrientId)
+      .is("day_of_week", null);
+    revalidatePath("/targets");
+    revalidatePath("/today");
+    return;
+  }
+
+  const value = Number(raw);
+  if (!Number.isFinite(value)) return;
+
+  const { data: existing } = await supabase
+    .from("nutrient_targets")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("nutrient_id", nutrientId)
+    .is("day_of_week", null)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase
+      .from("nutrient_targets")
+      .update({ direction: dir, target_value: value })
+      .eq("id", existing.id);
+  } else {
+    await supabase.from("nutrient_targets").insert({
+      user_id: user.id,
+      nutrient_id: nutrientId,
+      day_of_week: null,
+      direction: dir,
+      target_value: value,
+    });
+  }
+
+  revalidatePath("/targets");
+  revalidatePath("/today");
+}
+
+/** Remove a nutrient by id (callable directly from a client component). */
+export async function removeNutrient(id: string) {
+  if (!id) return;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase
+    .from("nutrient_definitions")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  revalidatePath("/targets");
+  revalidatePath("/today");
+  revalidatePath("/foods");
+}
