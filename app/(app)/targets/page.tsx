@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ensureDefaultNutrients } from "@/lib/data/setup";
 import { DEFAULT_DIRECTION, UNIT_OPTIONS, KIND_OPTIONS } from "@/lib/nutrition/defaults";
-import { upsertTarget, addNutrient } from "./actions";
+import { upsertTarget, addNutrient, deleteNutrient } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +16,7 @@ const DIRECTIONS = [
 ];
 
 const selectClass =
-  "h-10 rounded-xl border border-black/10 bg-transparent px-2 text-sm dark:border-white/15";
+  "h-10 rounded-xl border border-line bg-surface/60 px-3 text-sm text-ink";
 
 export default async function TargetsPage() {
   const supabase = await createClient();
@@ -46,71 +47,87 @@ export default async function TargetsPage() {
     <div className="space-y-8">
       <header className="flex items-end justify-between">
         <div>
-          <p className="text-sm text-muted">Targets</p>
-          <h1 className="text-2xl font-semibold tracking-tight">Nutrient targets</h1>
+          <p className="eyebrow">Goals</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Targets</h1>
         </div>
-        <Link href="/today" className="text-sm font-medium text-leaf">
+        <Link href="/today" className="text-sm font-medium text-leaf underline-offset-4 hover:underline">
           Done
         </Link>
       </header>
 
-      <section className="space-y-3">
+      <p className="-mt-3 text-sm text-muted">
+        Set a daily goal per nutrient. Leave a value blank to clear it.
+      </p>
+
+      <section className="space-y-2.5">
         {(nutrients ?? []).map((n) => {
           const t = targetByNutrient.get(n.id);
           const direction = t?.direction ?? DEFAULT_DIRECTION[n.key] ?? "at_least";
           return (
-            <form
+            <div
               key={n.id}
-              action={upsertTarget}
-              className="rounded-2xl border border-black/10 p-3 dark:border-white/15"
+              className="space-y-3 rounded-2xl border border-line bg-surface/40 p-3.5"
             >
-              <input type="hidden" name="nutrient_id" value={n.id} />
-              <div className="flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{n.display_name}</p>
-                  <p className="text-xs text-muted">{n.unit}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <select name="direction" defaultValue={direction} className={selectClass}>
-                    {DIRECTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                  <Input
-                    name="target_value"
-                    type="number"
-                    step="any"
-                    inputMode="decimal"
-                    defaultValue={t?.target_value ?? ""}
-                    placeholder="—"
-                    className="h-10 w-20 text-right"
-                  />
-                  <Button type="submit" size="sm">
-                    Save
+              <div className="flex items-center justify-between">
+                <p className="font-medium">
+                  {n.display_name}
+                  <span className="ml-2 text-xs text-muted">{n.unit}</span>
+                </p>
+                <form action={deleteNutrient}>
+                  <input type="hidden" name="id" value={n.id} />
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    aria-label={`Remove ${n.display_name}`}
+                  >
+                    <Trash2 className="h-4 w-4 text-muted" />
                   </Button>
-                </div>
+                </form>
               </div>
-            </form>
+
+              <form action={upsertTarget} className="flex items-center gap-2">
+                <input type="hidden" name="nutrient_id" value={n.id} />
+                <select name="direction" defaultValue={direction} className={`${selectClass} flex-1`}>
+                  {DIRECTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+                <Input
+                  name="target_value"
+                  type="number"
+                  step="any"
+                  inputMode="decimal"
+                  defaultValue={t?.target_value ?? ""}
+                  placeholder="—"
+                  className="h-10 w-24 text-right"
+                />
+                <Button type="submit" size="sm">
+                  Save
+                </Button>
+              </form>
+            </div>
           );
         })}
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-muted">Add a custom nutrient</h2>
+        <p className="eyebrow">Add a nutrient</p>
         <form
           action={addNutrient}
-          className="space-y-3 rounded-2xl border border-black/10 p-4 dark:border-white/15"
+          className="space-y-3 rounded-2xl border border-line bg-surface/40 p-4"
         >
           <div className="space-y-2">
             <Label htmlFor="display_name">Name</Label>
-            <Input id="display_name" name="display_name" placeholder="e.g. Potassium" required />
+            <Input id="display_name" name="display_name" placeholder="e.g. Sugar, Fiber, Sodium" required />
           </div>
           <div className="flex gap-3">
             <div className="flex-1 space-y-2">
               <Label htmlFor="unit">Unit</Label>
-              <select id="unit" name="unit" className={`${selectClass} h-11 w-full px-3`}>
+              <select id="unit" name="unit" className={`${selectClass} h-11 w-full`}>
                 {UNIT_OPTIONS.map((u) => (
                   <option key={u} value={u}>
                     {u}
@@ -124,7 +141,7 @@ export default async function TargetsPage() {
                 id="kind"
                 name="kind"
                 defaultValue="micro"
-                className={`${selectClass} h-11 w-full px-3`}
+                className={`${selectClass} h-11 w-full`}
               >
                 {KIND_OPTIONS.map((k) => (
                   <option key={k} value={k}>

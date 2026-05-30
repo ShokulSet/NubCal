@@ -9,16 +9,12 @@ export interface DefaultNutrient {
   sort_order: number;
 }
 
-/** Seeded for every user; they can add more. */
+/** Core macros seeded for every user; extras (sugar, fiber, sodium…) can be added. */
 export const DEFAULT_NUTRIENTS: DefaultNutrient[] = [
   { key: "energy_kcal", display_name: "Calories", unit: "kcal", kind: "energy", is_energy: true, sort_order: 0 },
   { key: "protein", display_name: "Protein", unit: "g", kind: "macro", is_energy: false, sort_order: 10 },
   { key: "carbs", display_name: "Carbs", unit: "g", kind: "macro", is_energy: false, sort_order: 20 },
   { key: "fat", display_name: "Fat", unit: "g", kind: "macro", is_energy: false, sort_order: 30 },
-  { key: "saturated_fat", display_name: "Saturated fat", unit: "g", kind: "macro", is_energy: false, sort_order: 40 },
-  { key: "sugar", display_name: "Sugar", unit: "g", kind: "macro", is_energy: false, sort_order: 50 },
-  { key: "fiber", display_name: "Fiber", unit: "g", kind: "macro", is_energy: false, sort_order: 60 },
-  { key: "sodium", display_name: "Sodium", unit: "mg", kind: "micro", is_energy: false, sort_order: 70 },
 ];
 
 /** Sensible default goal direction per seeded nutrient. */
