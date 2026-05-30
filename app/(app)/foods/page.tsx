@@ -1,28 +1,40 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { deleteFood } from "./actions";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-export default async function FoodsPage() {
+export default async function FoodsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: foods } = await supabase
+  let query = supabase
     .from("foods")
     .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
+  const term = q?.trim().replace(/[%,()]/g, " ");
+  if (term) {
+    query = query.or(`name.ilike.%${term}%,name_th.ilike.%${term}%`);
+  }
+  const { data: foods } = await query;
+
   return (
     <div className="space-y-6">
       <header className="flex items-end justify-between">
         <div>
-          <p className="text-sm text-muted">Foods</p>
+          <p className="eyebrow">Library</p>
           <h1 className="text-2xl font-semibold tracking-tight">Your foods</h1>
         </div>
         <Link href="/foods/new">
@@ -32,9 +44,20 @@ export default async function FoodsPage() {
         </Link>
       </header>
 
+      <form className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+        <Input
+          name="q"
+          defaultValue={q ?? ""}
+          placeholder="Search foods…"
+          className="pl-10"
+          aria-label="Search foods"
+        />
+      </form>
+
       {!foods || foods.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-black/10 p-8 text-center text-sm text-muted dark:border-white/15">
-          No foods yet. Add one to start logging.
+        <div className="rounded-2xl border border-line bg-surface/40 p-8 text-center text-sm text-muted">
+          {term ? `No foods match “${q}”.` : "No foods yet. Add one to start logging."}
         </div>
       ) : (
         <ul className="space-y-2">
@@ -44,7 +67,7 @@ export default async function FoodsPage() {
             return (
               <li
                 key={f.id}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-black/10 p-3 dark:border-white/15"
+                className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface/40 p-3"
               >
                 <div className="min-w-0">
                   <p className="truncate font-medium">{f.name}</p>

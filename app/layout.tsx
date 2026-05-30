@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Hanken_Grotesk, DM_Mono } from "next/font/google";
+import { RegisterSW } from "@/components/pwa/RegisterSW";
 import "./globals.css";
 
 const display = Fraunces({
@@ -24,6 +25,12 @@ const mono = DM_Mono({
 export const metadata: Metadata = {
   title: "NubCal — nutrition journal",
   description: "Track macros and custom nutrients against your own targets.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "NubCal", statusBarStyle: "default" },
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
@@ -44,7 +51,10 @@ export default function RootLayout({
       lang="en"
       className={`${display.variable} ${sans.variable} ${mono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col font-sans">{children}</body>
+      <body className="flex min-h-full flex-col font-sans">
+        {children}
+        <RegisterSW />
+      </body>
     </html>
   );
 }
