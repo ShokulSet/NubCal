@@ -1,6 +1,6 @@
-// Minimal NubCal service worker: app-shell offline + cached static assets.
-// Deliberately does NOT touch /api, Supabase, or auth requests.
-const CACHE = "nubcal-v1";
+// Minimal NubCal service worker: app-shell offline + immutable static assets.
+// Only caches content-hashed /_next/static/ files (never HMR/data/api/auth).
+const CACHE = "nubcal-v2";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -22,18 +22,16 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // Pages: network-first, fall back to cached shell when offline.
+  // Pages: network-first, fall back to the cached shell when offline.
   if (req.mode === "navigate") {
     event.respondWith(
-      fetch(req).catch(() =>
-        caches.match(req).then((r) => r || caches.match("/today")),
-      ),
+      fetch(req).catch(() => caches.match(req).then((r) => r || caches.match("/today"))),
     );
     return;
   }
 
-  // Static build assets + icons: cache-first.
-  if (url.pathname.startsWith("/_next/") || url.pathname.startsWith("/icons/")) {
+  // Immutable, content-hashed build assets + icons: cache-first.
+  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
     event.respondWith(
       caches.match(req).then(
         (cached) =>
