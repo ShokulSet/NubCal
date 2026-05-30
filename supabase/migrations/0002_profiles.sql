@@ -5,6 +5,7 @@
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
+set search_path = ''
 as $$
 begin
   new.updated_at = now();
@@ -58,7 +59,7 @@ $$;
 
 -- Trigger functions execute as the table owner; no app role should be able to
 -- call this directly, so revoke the default PUBLIC execute grant.
-revoke execute on function public.handle_new_user() from public;
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
