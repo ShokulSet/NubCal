@@ -50,13 +50,13 @@ export function CameraView({
           type="button"
           onClick={onClose}
           aria-label="Close camera"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/35 backdrop-blur-md transition active:scale-90"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/45 backdrop-blur-md transition active:scale-90"
         >
           <X className="h-5 w-5" />
         </button>
-        <p className="truncate text-[0.66rem] font-semibold uppercase tracking-[0.22em] text-paper/75">
+        <span className="truncate rounded-full bg-black/45 px-3.5 py-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.22em] text-paper backdrop-blur-md">
           {title}
-        </p>
+        </span>
       </div>
 
       {/* Optional hint field (AI meal photo), tucked under the top bar. */}
@@ -82,13 +82,15 @@ export function CameraView({
         </div>
       </div>
 
-      {/* Caption, sitting just above the controls. */}
-      <p
-        className="absolute inset-x-0 px-8 text-center text-sm text-paper/85"
-        style={{ bottom: "calc(env(safe-area-inset-bottom) + 122px)" }}
+      {/* Caption on a frosted chip so it stays legible over any frame. */}
+      <div
+        className="absolute inset-x-0 flex justify-center px-6"
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 120px)" }}
       >
-        {caption}
-      </p>
+        <p className="rounded-full bg-black/55 px-4 py-2 text-center text-sm font-medium text-paper backdrop-blur-md">
+          {caption}
+        </p>
+      </div>
 
       {/* Footer control cluster. */}
       <div

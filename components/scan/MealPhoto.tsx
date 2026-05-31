@@ -148,7 +148,7 @@ export function MealPhoto({ autoCamera = false }: { autoCamera?: boolean }) {
             onChange={(e) => setHint(e.target.value)}
             placeholder="Add a hint — e.g. chicken pad thai"
             aria-label="Hint (optional)"
-            className="h-11 w-full rounded-full border border-paper/25 bg-black/30 px-4 text-sm text-paper outline-none backdrop-blur-md placeholder:text-paper/55 focus:border-paper/55"
+            className="h-11 w-full rounded-full border border-paper/25 bg-black/50 px-4 text-sm text-paper outline-none backdrop-blur-md placeholder:text-paper/65 focus:border-paper/55"
           />
         }
         footer={
