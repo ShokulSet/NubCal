@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Apple, Settings } from "lucide-react";
+import { Home, NotebookPen, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/today", label: "Today", icon: Home },
-  { href: "/foods", label: "Foods", icon: Apple },
+  { href: "/log", label: "Log", icon: NotebookPen },
   { href: "/settings", label: "You", icon: Settings },
 ];
 
