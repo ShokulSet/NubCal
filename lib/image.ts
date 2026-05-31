@@ -20,3 +20,27 @@ export async function fileToDownscaledBase64(
   const dataUrl = canvas.toDataURL("image/jpeg", quality);
   return { base64: dataUrl.split(",")[1] ?? "", mimeType: "image/jpeg" };
 }
+
+/** Capture a playing <video>'s current frame as a downscaled JPEG base64. */
+export function videoFrameToBase64(
+  video: HTMLVideoElement,
+  maxDim = 1024,
+  quality = 0.7,
+): { base64: string; mimeType: string } {
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
+  if (!vw || !vh) throw new Error("Camera not ready");
+  const scale = Math.min(1, maxDim / Math.max(vw, vh));
+  const w = Math.max(1, Math.round(vw * scale));
+  const h = Math.max(1, Math.round(vh * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas not supported");
+  ctx.drawImage(video, 0, 0, w, h);
+
+  const dataUrl = canvas.toDataURL("image/jpeg", quality);
+  return { base64: dataUrl.split(",")[1] ?? "", mimeType: "image/jpeg" };
+}

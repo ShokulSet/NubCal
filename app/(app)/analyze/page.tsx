@@ -17,6 +17,7 @@ function AnalyzeInner() {
     initial === "label" ? "label" : initial === "text" ? "text" : "meal",
   );
   const barcode = sp.get("barcode") ?? undefined;
+  const autoCamera = sp.get("camera") === "1";
 
   const tabClass = (active: boolean) =>
     cn(
@@ -44,7 +45,7 @@ function AnalyzeInner() {
       </div>
 
       {tab === "meal" ? (
-        <MealPhoto />
+        <MealPhoto autoCamera={autoCamera} />
       ) : tab === "text" ? (
         <MealText />
       ) : (
