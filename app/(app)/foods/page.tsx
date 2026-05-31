@@ -45,7 +45,7 @@ export default async function FoodsPage({
       <header className="flex items-end justify-between">
         <div>
           <p className="eyebrow">Library</p>
-          <h1 className="text-2xl font-semibold tracking-tight">Your foods</h1>
+          <h1 className="text-[2.2rem] leading-none">Your foods</h1>
         </div>
         <Link href="/foods/new">
           <Button size="sm">

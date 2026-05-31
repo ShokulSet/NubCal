@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 
 const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack", "other"];
 const selectClass =
-  "h-11 w-full rounded-xl border border-black/10 bg-transparent px-3 dark:border-white/15";
+  "h-11 w-full rounded-xl border border-line bg-transparent px-3";
 
 interface LabelData {
   name: string;
@@ -136,7 +136,7 @@ export function LabelOcr({ barcode }: { barcode?: string }) {
           </div>
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-black/10 p-4 dark:border-white/15">
+        <div className="space-y-3 rounded-2xl border border-line p-4">
           <p className="text-sm font-semibold text-muted">Per serving</p>
           {NUTRIENT_ORDER.map((key) => (
             <div key={key} className="flex items-center justify-between gap-3">
@@ -207,7 +207,7 @@ export function LabelOcr({ barcode }: { barcode?: string }) {
           {error}
         </p>
       )}
-      <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-black/10 p-10 text-center dark:border-white/15">
+      <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-line p-10 text-center">
         <Camera className="h-8 w-8 text-muted" />
         <span className="text-sm font-medium">Take a photo of the nutrition label</span>
         <span className="text-xs text-muted">

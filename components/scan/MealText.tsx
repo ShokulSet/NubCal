@@ -54,7 +54,7 @@ export function MealText() {
   if (stage === "review") {
     if (notFood || items.length === 0) {
       return (
-        <div className="space-y-4 rounded-2xl border border-dashed border-black/10 p-6 text-center dark:border-white/15">
+        <div className="space-y-4 rounded-2xl border border-dashed border-line p-6 text-center">
           <p className="text-sm text-muted">No food found in that description.</p>
           <Button onClick={() => setStage("input")}>Edit description</Button>
         </div>

@@ -40,7 +40,7 @@ export default async function LogPage() {
     <div className="space-y-6">
       <header>
         <p className="eyebrow">Log · {eatenOn}</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Add to today</h1>
+        <h1 className="text-[2.2rem] leading-none">Add to today</h1>
       </header>
       <LogClient foods={foods ?? []} items={items} />
     </div>

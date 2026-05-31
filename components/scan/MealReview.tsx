@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 
 const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack", "other"];
 const selectClass =
-  "h-11 w-full rounded-xl border border-black/10 bg-transparent px-3 dark:border-white/15";
+  "h-11 w-full rounded-xl border border-line bg-transparent px-3";
 
 /** Raw item shape returned by /api/meals/analyze (photo or text). */
 export interface ApiItem {
@@ -136,7 +136,7 @@ export function MealReview({
     <form action={logMealPhoto} className="space-y-4">
       <input type="hidden" name="payload" value={payload} />
 
-      <p className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:bg-emerald-950/40">
+      <p className="flex items-center gap-2 rounded-xl bg-leaf/10 px-4 py-3 text-sm text-leaf">
         <Sparkles className="h-4 w-4 shrink-0" />
         AI estimate — adjust portions and verify before logging.
       </p>
@@ -147,7 +147,7 @@ export function MealReview({
           return (
             <div
               key={idx}
-              className="space-y-3 rounded-2xl border border-black/10 p-3 dark:border-white/15"
+              className="space-y-3 rounded-2xl border border-line p-3"
             >
               <div className="flex items-center gap-2">
                 <Input

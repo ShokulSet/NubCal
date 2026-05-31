@@ -147,11 +147,11 @@ export default function ScanPage() {
     <div className="space-y-6">
       <header>
         <p className="eyebrow">Capture</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Scan barcode</h1>
+        <h1 className="text-[2.2rem] leading-none">Scan barcode</h1>
       </header>
 
       {error && (
-        <p className="rounded-xl border border-amber-500/25 bg-amber-500/[0.08] px-4 py-3 text-sm text-amber-700">
+        <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950/40">
           {error}
         </p>
       )}

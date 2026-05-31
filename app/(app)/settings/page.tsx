@@ -27,16 +27,16 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-sm text-muted">Settings</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Account</h1>
+        <p className="eyebrow">Settings</p>
+        <h1 className="text-[2.2rem] leading-none">Account</h1>
       </header>
 
-      <div className="rounded-2xl border border-black/10 p-4 dark:border-white/15">
+      <div className="rounded-2xl border border-line p-4">
         <p className="text-sm text-muted">Signed in as</p>
         <p className="font-medium">{user?.email}</p>
       </div>
 
-      <nav className="overflow-hidden rounded-2xl border border-black/10 dark:border-white/15">
+      <nav className="overflow-hidden rounded-2xl border border-line">
         <Link
           href="/targets"
           className="flex items-center justify-between px-4 py-3 text-sm hover:bg-black/[.03] dark:hover:bg-white/[.04]"

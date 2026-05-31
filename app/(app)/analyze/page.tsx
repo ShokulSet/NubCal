@@ -29,7 +29,7 @@ function AnalyzeInner() {
     <div className="space-y-6">
       <header>
         <p className="eyebrow">AI capture</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Analyze</h1>
+        <h1 className="text-[2.2rem] leading-none">Analyze</h1>
       </header>
 
       <div className="grid grid-cols-3 gap-1 rounded-full border border-line bg-surface/40 p-1">
