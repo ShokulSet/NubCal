@@ -25,6 +25,12 @@ const inkColor = new Color(INK);
 const mutedColor = new Color(MUTED);
 const trackColor = new Color(INK, 0.1); // matches stroke-ink/10
 
+// Menlo ships with iOS — a reliable monospaced face standing in for the site's
+// DM Mono (Font.monospacedSystemFont isn't available in Scriptable).
+function mono(size) {
+  return new Font("Menlo", size);
+}
+
 function num(n) {
   return n == null ? "—" : Math.round(n).toString();
 }
@@ -74,11 +80,11 @@ function ringImage(opts) {
     const block = mainSize + (hasSub ? subSize + 1 : 0);
     const top = cy - block / 2;
     ctx.setTextAlignedCenter();
-    ctx.setFont(Font.monospacedSystemFont(mainSize));
+    ctx.setFont(mono(mainSize));
     ctx.setTextColor(opts.mainColor || inkColor);
     ctx.drawTextInRect(opts.main, new Rect(0, top - mainSize * 0.15, size, mainSize * 1.4));
     if (hasSub) {
-      ctx.setFont(Font.monospacedSystemFont(subSize));
+      ctx.setFont(mono(subSize));
       ctx.setTextColor(mutedColor);
       ctx.drawTextInRect(opts.sub, new Rect(0, top + mainSize - 1, size, subSize * 1.6));
     }
@@ -188,7 +194,7 @@ try {
   const totals = info.addText(
     cal ? `${num(cal.total)} / ${cal.target ? num(cal.target) : "—"} kcal` : "no target",
   );
-  totals.font = Font.monospacedSystemFont(11);
+  totals.font = mono(11);
   totals.textColor = mutedColor;
 
   // ── Macro rings, like the dashboard's ring row (medium only). ──
