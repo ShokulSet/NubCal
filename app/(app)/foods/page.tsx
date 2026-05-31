@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, Trash2, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthUserId } from "@/lib/supabase/auth";
-import { deleteFood } from "./actions";
+import { ensureDefaultNutrients } from "@/lib/data/setup";
+import { FoodsList } from "./FoodsList";
 import { Button } from "@/components/ui/button";
-import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 
 export default async function FoodsPage({
@@ -18,6 +18,8 @@ export default async function FoodsPage({
   const userId = await getAuthUserId(supabase);
   if (!userId) redirect("/login");
 
+  await ensureDefaultNutrients(supabase, userId);
+
   let query = supabase
     .from("foods")
     .select("*")
@@ -28,7 +30,15 @@ export default async function FoodsPage({
   if (term) {
     query = query.or(`name.ilike.%${term}%,name_th.ilike.%${term}%`);
   }
-  const { data: foods } = await query;
+  const [{ data: foods }, { data: nutrientDefs }] = await Promise.all([
+    query,
+    supabase
+      .from("nutrient_definitions")
+      .select("id, key, display_name, unit")
+      .eq("user_id", userId)
+      .order("sort_order")
+      .order("display_name"),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -60,34 +70,13 @@ export default async function FoodsPage({
           {term ? `No foods match “${q}”.` : "No foods yet. Add one to start logging."}
         </div>
       ) : (
-        <ul className="space-y-2">
-          {foods.map((f, i) => {
-            const nutrients = (f.nutrients ?? {}) as Record<string, number>;
-            const kcal = nutrients.energy_kcal;
-            return (
-              <li
-                key={f.id}
-                className="animate-rise flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface/40 p-3"
-                style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}
-              >
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{f.name}</p>
-                  <p className="text-xs text-muted">
-                    {f.brand ? `${f.brand} · ` : ""}
-                    {f.serving_size} {f.serving_unit}
-                    {kcal != null ? ` · ${Math.round(kcal)} kcal` : ""}
-                  </p>
-                </div>
-                <form action={deleteFood}>
-                  <input type="hidden" name="id" value={f.id} />
-                  <SubmitButton variant="ghost" size="icon" aria-label="Delete food">
-                    <Trash2 className="h-4 w-4 text-muted" />
-                  </SubmitButton>
-                </form>
-              </li>
-            );
-          })}
-        </ul>
+        <FoodsList
+          foods={foods.map((f) => ({
+            ...f,
+            nutrients: (f.nutrients ?? {}) as Record<string, number>,
+          }))}
+          nutrients={nutrientDefs ?? []}
+        />
       )}
     </div>
   );
