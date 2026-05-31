@@ -25,6 +25,9 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-leaf: #1f6b43;
+  /* Fixed warm-white that never flips with the theme — for always-dark
+     surfaces like the camera overlay (unlike --paper, which inverts). */
+  --color-cream: #f5efe4;
   --color-chili: #c0410c;
   --color-amber: #a8680a;
   /* progress zones: really low → moderate → good → too much (120%+) */

@@ -28,7 +28,7 @@ export function CameraView({
   footer: ReactNode;
 }) {
   return (
-    <div className="animate-fade fixed inset-0 z-[60] bg-ink text-paper">
+    <div className="animate-fade fixed inset-0 z-[60] bg-black text-cream">
       <video
         ref={videoRef}
         playsInline
@@ -54,7 +54,7 @@ export function CameraView({
         >
           <X className="h-5 w-5" />
         </button>
-        <span className="truncate rounded-full bg-black/45 px-3.5 py-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.22em] text-paper backdrop-blur-md">
+        <span className="truncate rounded-full bg-black/45 px-3.5 py-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.22em] text-cream backdrop-blur-md">
           {title}
         </span>
       </div>
@@ -72,10 +72,10 @@ export function CameraView({
       {/* Framing guide — identical brackets for both flows. */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
         <div className="relative aspect-square w-[66%] max-w-[290px]">
-          <span className="absolute left-0 top-0 h-9 w-9 rounded-tl-2xl border-l-2 border-t-2 border-paper/85" />
-          <span className="absolute right-0 top-0 h-9 w-9 rounded-tr-2xl border-r-2 border-t-2 border-paper/85" />
-          <span className="absolute bottom-0 left-0 h-9 w-9 rounded-bl-2xl border-b-2 border-l-2 border-paper/85" />
-          <span className="absolute bottom-0 right-0 h-9 w-9 rounded-br-2xl border-b-2 border-r-2 border-paper/85" />
+          <span className="absolute left-0 top-0 h-9 w-9 rounded-tl-2xl border-l-2 border-t-2 border-cream/85" />
+          <span className="absolute right-0 top-0 h-9 w-9 rounded-tr-2xl border-r-2 border-t-2 border-cream/85" />
+          <span className="absolute bottom-0 left-0 h-9 w-9 rounded-bl-2xl border-b-2 border-l-2 border-cream/85" />
+          <span className="absolute bottom-0 right-0 h-9 w-9 rounded-br-2xl border-b-2 border-r-2 border-cream/85" />
           {scanning && (
             <span className="animate-scanline absolute inset-x-4 h-0.5 rounded-full bg-leaf shadow-[0_0_14px_2px_rgba(31,107,67,0.75)]" />
           )}
@@ -87,7 +87,7 @@ export function CameraView({
         className="absolute inset-x-0 flex justify-center px-6"
         style={{ bottom: "calc(env(safe-area-inset-bottom) + 120px)" }}
       >
-        <p className="rounded-full bg-black/55 px-4 py-2 text-center text-sm font-medium text-paper backdrop-blur-md">
+        <p className="rounded-full bg-black/55 px-4 py-2 text-center text-sm font-medium text-cream backdrop-blur-md">
           {caption}
         </p>
       </div>

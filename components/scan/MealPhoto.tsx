@@ -148,14 +148,14 @@ export function MealPhoto({ autoCamera = false }: { autoCamera?: boolean }) {
             onChange={(e) => setHint(e.target.value)}
             placeholder="Add a hint — e.g. chicken pad thai"
             aria-label="Hint (optional)"
-            className="h-11 w-full rounded-full border border-paper/25 bg-black/50 px-4 text-sm text-paper outline-none backdrop-blur-md placeholder:text-paper/65 focus:border-paper/55"
+            className="h-11 w-full rounded-full border border-cream/25 bg-black/50 px-4 text-sm text-cream outline-none backdrop-blur-md placeholder:text-cream/65 focus:border-cream/55"
           />
         }
         footer={
           <div className="flex items-center justify-between">
             <label
               aria-label="Upload a photo instead"
-              className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-black/35 text-paper backdrop-blur-md transition active:scale-90"
+              className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-black/35 text-cream backdrop-blur-md transition active:scale-90"
             >
               <ImagePlus className="h-5 w-5" />
               <input type="file" accept="image/*" className="hidden" onChange={onFile} />
@@ -166,8 +166,8 @@ export function MealPhoto({ autoCamera = false }: { autoCamera?: boolean }) {
               aria-label="Capture photo"
               className="group relative h-[74px] w-[74px]"
             >
-              <span className="absolute inset-0 rounded-full border-[3px] border-paper/85" />
-              <span className="absolute inset-[7px] rounded-full bg-paper transition group-active:scale-90" />
+              <span className="absolute inset-0 rounded-full border-[3px] border-cream/85" />
+              <span className="absolute inset-[7px] rounded-full bg-cream transition group-active:scale-90" />
             </button>
             {/* Balances the upload button so the shutter stays centered. */}
             <span className="h-12 w-12" aria-hidden />

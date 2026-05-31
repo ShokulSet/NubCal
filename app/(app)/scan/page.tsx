@@ -305,7 +305,7 @@ export default function ScanPage() {
                   <button
                     type="button"
                     onClick={() => setMode("manual")}
-                    className="flex items-center gap-2 rounded-full bg-black/35 px-5 py-2.5 text-sm font-medium text-paper backdrop-blur-md transition active:scale-95"
+                    className="flex items-center gap-2 rounded-full bg-black/35 px-5 py-2.5 text-sm font-medium text-cream backdrop-blur-md transition active:scale-95"
                   >
                     <Keyboard className="h-4 w-4" /> Enter manually
                   </button>
