@@ -59,6 +59,13 @@ export default function ScanPage() {
     }
   }
 
+  // Deep-link (e.g. from the home-screen widget): open straight into the camera.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("camera") === "1") {
+      setMode("camera");
+    }
+  }, []);
+
   useEffect(() => {
     if (mode !== "camera" || result) return;
     let stream: MediaStream | null = null;

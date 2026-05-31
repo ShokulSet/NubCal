@@ -102,7 +102,7 @@ function eyebrow(stack, text) {
 const widget = new ListWidget();
 widget.backgroundColor = new Color(SURFACE); // the widget itself is one of the app's cards
 widget.setPadding(16, 16, 16, 16);
-widget.url = "https://nubcal.vercel.app/today"; // tap opens the app
+widget.url = "https://nubcal.vercel.app/scan?camera=1"; // tap opens the scanner camera
 
 const family = config.runsInWidget ? config.widgetFamily : "medium";
 const isSmall = family === "small";
@@ -131,115 +131,84 @@ try {
   }
   eyebrow(head, dateStr);
 
-  widget.addSpacer(isSmall ? 10 : 12);
-
-  // ── Calorie hero: ring + "N kcal left / over", mirroring CalorieHero. ──
-  const hero = widget.addStack();
-  hero.centerAlignContent();
-
-  const ringSize = isSmall ? 84 : 96;
-  const ring = hero.addImage(
-    ringImage({
-      fraction: cal ? cal.ratio : 0,
-      color: cal ? cal.color : MUTED,
-      size: ringSize,
-      stroke: 10,
-      main: cal ? num(cal.total) : "—",
-      mainSize: isSmall ? 21 : 24,
-      mainColor: inkColor,
-      sub: cal && cal.target ? `/ ${num(cal.target)}` : "",
-      subSize: 11,
-    }),
-  );
-  ring.imageSize = new Size(ringSize, ringSize);
-
-  hero.addSpacer(14);
-
-  const info = hero.addStack();
-  info.layoutVertically();
-  eyebrow(info, "Calories");
-  info.addSpacer(3);
-
-  const delta = cal && cal.target != null ? Math.round(cal.target - cal.total) : null;
-  const big = info.addStack();
-  big.bottomAlignContent();
-  if (delta == null) {
-    const v = big.addText(cal ? num(cal.total) : "—");
-    v.font = Font.boldSystemFont(isSmall ? 22 : 26);
-    v.textColor = inkColor;
-    big.addSpacer(4);
-    const u = big.addText("kcal");
-    u.font = Font.mediumSystemFont(12);
-    u.textColor = mutedColor;
-  } else if (delta >= 0) {
-    const v = big.addText(String(delta));
-    v.font = Font.boldSystemFont(isSmall ? 22 : 26);
-    v.textColor = inkColor;
-    big.addSpacer(4);
-    const u = big.addText("kcal left");
-    u.font = Font.mediumSystemFont(12);
-    u.textColor = mutedColor;
-  } else {
-    const over = cal.zone === "over";
-    const v = big.addText(String(Math.abs(delta)));
-    v.font = Font.boldSystemFont(isSmall ? 22 : 26);
-    v.textColor = new Color(over ? OVER : CHILI);
-    big.addSpacer(4);
-    const u = big.addText("kcal over");
-    u.font = Font.mediumSystemFont(12);
-    u.textColor = new Color(over ? OVER : CHILI);
-  }
-
-  info.addSpacer(3);
-  const totals = info.addText(
-    cal ? `${num(cal.total)} / ${cal.target ? num(cal.target) : "—"} kcal` : "no target",
-  );
-  totals.font = mono(11);
-  totals.textColor = mutedColor;
-
-  // ── Macro rings, like the dashboard's ring row (medium only). ──
-  if (!isSmall && macros.length > 0) {
-    widget.addSpacer(14);
-    const line = widget.addStack();
-    line.backgroundColor = new Color(INK, 0.1);
-    line.size = new Size(0, 1);
-    line.addSpacer();
-    widget.addSpacer(12);
-
-    const row = widget.addStack();
-    row.spacing = 0;
-    for (const m of macros) {
-      const col = row.addStack();
-      col.layoutVertically();
-      col.centerAlignContent();
-      const mSize = 50;
-      const img = col.addImage(
-        ringImage({
-          fraction: m.ratio,
-          color: m.color,
-          size: mSize,
-          stroke: 6,
-          main: num(m.total),
-          mainSize: 13,
-          mainColor: inkColor,
-          sub: m.target ? `/${num(m.target)}` : "",
-          subSize: 8,
-        }),
-      );
-      img.imageSize = new Size(mSize, mSize);
-
-      col.addSpacer(5);
-      const lbl = col.addStack();
-      lbl.addSpacer();
-      const name = lbl.addText(m.label);
-      name.font = Font.semiboldSystemFont(10);
-      name.textColor = inkColor;
-      name.lineLimit = 1;
-      lbl.addSpacer();
-
-      if (macros.indexOf(m) < macros.length - 1) row.addSpacer();
+  // ── Build the ring set: Calories (remaining) + each macro. ──
+  // The calorie ring centers the REMAINING amount (like CalorieHero's "kcal
+  // left"); macro rings center the eaten total over its target.
+  const rings = [];
+  if (cal) {
+    const delta = cal.target != null ? Math.round(cal.target - cal.total) : null;
+    let main = num(cal.total);
+    let sub = "kcal";
+    let mainColor = inkColor;
+    if (delta != null && delta >= 0) {
+      main = String(delta);
+      sub = "left";
+    } else if (delta != null) {
+      main = String(Math.abs(delta));
+      sub = "over";
+      mainColor = new Color(cal.zone === "over" ? OVER : CHILI);
     }
+    rings.push({ fraction: cal.ratio, color: cal.color, main, sub, mainColor, label: "Calories" });
   }
+  for (const m of macros) {
+    rings.push({
+      fraction: m.ratio,
+      color: m.color,
+      main: num(m.total),
+      sub: m.target ? `/${num(m.target)}` : "",
+      mainColor: inkColor,
+      label: m.label,
+    });
+  }
+
+  function ringCol(row, spec, size, stroke, mainSize, subSize) {
+    const col = row.addStack();
+    col.layoutVertically();
+    col.centerAlignContent();
+    const img = col.addImage(
+      ringImage({
+        fraction: spec.fraction,
+        color: spec.color,
+        size,
+        stroke,
+        main: spec.main,
+        mainSize,
+        mainColor: spec.mainColor,
+        sub: spec.sub,
+        subSize,
+      }),
+    );
+    img.imageSize = new Size(size, size);
+    col.addSpacer(5);
+    const lbl = col.addStack();
+    lbl.addSpacer();
+    const name = lbl.addText(spec.label);
+    name.font = Font.semiboldSystemFont(10);
+    name.textColor = mutedColor;
+    name.lineLimit = 1;
+    lbl.addSpacer();
+  }
+
+  // Center the ring band in the space below the header.
+  widget.addSpacer();
+  const row = widget.addStack();
+  row.centerAlignContent();
+
+  if (isSmall) {
+    // One big calorie ring; macros don't fit a small widget.
+    row.addSpacer();
+    ringCol(row, rings[0] || { fraction: 0, color: MUTED, main: "—", sub: "", mainColor: inkColor, label: "Calories" }, 96, 10, 24, 11);
+    row.addSpacer();
+  } else {
+    // All rings in one row, equal size, evenly spread across the width.
+    const size = rings.length <= 3 ? 74 : 64;
+    const mainSize = rings.length <= 3 ? 16 : 14;
+    rings.forEach((spec, i) => {
+      ringCol(row, spec, size, 7, mainSize, 9);
+      if (i < rings.length - 1) row.addSpacer();
+    });
+  }
+  widget.addSpacer();
 } catch (e) {
   const t = widget.addText("Couldn't load NubCal");
   t.font = Font.mediumSystemFont(13);
