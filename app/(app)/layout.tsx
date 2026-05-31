@@ -3,6 +3,7 @@ import { Trirong, IBM_Plex_Sans_Thai } from "next/font/google";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthUserId } from "@/lib/supabase/auth";
 import { BottomNav } from "@/components/nav/BottomNav";
+import { AddSpeedDial } from "@/components/nav/AddSpeedDial";
 
 // Thai companions, scoped to the authed shell only (auth pages are English-only).
 // preload:false → the files download lazily, the first time a Thai glyph paints.
@@ -38,6 +39,7 @@ export default async function AppLayout({
       <main className="mx-auto w-full max-w-md flex-1 px-4 pb-24 pt-6">
         {children}
       </main>
+      <AddSpeedDial />
       <BottomNav />
     </div>
   );

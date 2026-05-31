@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthUserId } from "@/lib/supabase/auth";
 import { ensureDefaultNutrients } from "@/lib/data/setup";
@@ -178,12 +177,6 @@ export default async function TodayPage() {
           ))}
         </ul>
       </section>
-
-      <Link href="/log" className="fixed bottom-24 right-5 z-30" aria-label="Add to today">
-        <Button size="icon" className="h-14 w-14 shadow-[0_16px_32px_-12px_rgba(31,107,67,0.65)]">
-          <Plus className="h-6 w-6" />
-        </Button>
-      </Link>
     </div>
   );
 }

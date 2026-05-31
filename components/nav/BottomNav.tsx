@@ -2,14 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, NotebookPen, ScanBarcode, Sparkles, Apple, Settings } from "lucide-react";
+import { Home, Apple, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/today", label: "Today", icon: Home },
-  { href: "/log", label: "Log", icon: NotebookPen },
-  { href: "/scan", label: "Scan", icon: ScanBarcode },
-  { href: "/analyze", label: "AI", icon: Sparkles },
   { href: "/foods", label: "Foods", icon: Apple },
   { href: "/settings", label: "You", icon: Settings },
 ];
