@@ -8,7 +8,9 @@ function isPublicPath(path: string) {
     path === "/" ||
     path.startsWith("/login") ||
     path.startsWith("/signup") ||
-    path.startsWith("/auth")
+    path.startsWith("/auth") ||
+    // Token-authenticated home-screen widget endpoint (no login session).
+    path.startsWith("/api/widget")
   );
 }
 

@@ -34,6 +34,7 @@ widget.url = "https://nubcal.vercel.app/today"; // tap opens the app
 
 try {
   const data = await load();
+  if (!data || data.error) throw new Error(data && data.error ? data.error : "no data");
   const items = data.items || [];
   const cal = items.find((i) => i.is_energy);
   const macros = items.filter((i) => !i.is_energy).slice(0, 3);
