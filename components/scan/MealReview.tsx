@@ -48,6 +48,7 @@ function scale(per100: Record<string, number>, grams: number): Record<string, nu
 }
 
 export function toEdit(it: ApiItem): EditItem {
+  const grams = it.estimated_grams || 100;
   let per100 = it.per_100g;
   if ((!per100 || Object.keys(per100).length === 0) && it.estimated_grams > 0) {
     per100 = {};
@@ -55,12 +56,21 @@ export function toEdit(it: ApiItem): EditItem {
       per100[k] = Math.round(((v * 100) / it.estimated_grams) * 10) / 10;
     }
   }
+  per100 = per100 ?? {};
+  // Per-piece nutrients are ALWAYS density × per-piece grams — never the model's
+  // `nutrients` field verbatim. The model intermittently puts the WHOLE GROUP's
+  // totals there while also setting count>1, so logging (nutrients × count) comes
+  // out as group × count (e.g. a box of 5 dumplings counted 5× too high). per_100g
+  // is a count-independent density the model gets right, so recomputing from it
+  // keeps the per-piece value self-consistent — same thing editing grams produces.
+  const nutrients =
+    Object.keys(per100).length > 0 ? scale(per100, grams) : (it.nutrients ?? {});
   return {
     name: it.name_th || it.name_en || "Food",
     count: Math.max(1, Math.round(it.count || 1)),
-    grams: it.estimated_grams || 100,
-    per100: per100 ?? {},
-    nutrients: it.nutrients ?? {},
+    grams,
+    per100,
+    nutrients,
     gramsLow: it.grams_low,
     gramsHigh: it.grams_high,
     household: it.household_unit,
