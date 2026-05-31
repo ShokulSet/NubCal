@@ -1,4 +1,4 @@
-import type { NutrientMap, Progress, TargetDirection } from "./types";
+import type { NutrientMap, Progress, ProgressZone, TargetDirection } from "./types";
 
 /** Scale a per-serving snapshot by the number of servings eaten. */
 export function itemContribution(
@@ -41,7 +41,7 @@ export function computeProgress(
   direction: TargetDirection,
 ): Progress {
   if (target == null || target <= 0) {
-    return { total, target: target ?? null, ratio: null, status: "none" };
+    return { total, target: target ?? null, ratio: null, status: "none", direction };
   }
   const ratio = total / target;
   let status: Progress["status"];
@@ -57,7 +57,30 @@ export function computeProgress(
       status = ratio > 1.1 ? "over" : ratio < 0.9 ? "under" : "on_track";
       break;
   }
-  return { total, target, ratio, status };
+  return { total, target, ratio, status, direction };
+}
+
+/**
+ * Colour band for a progress value:
+ *   red (low) → yellow (moderate) → green (good) → purple (too much, 120%+).
+ * Direction-aware: for "at_most" limits, low is good and over the cap is the
+ * problem, so the scale flips.
+ */
+export function progressZone(progress: Progress): ProgressZone {
+  const { ratio, target, direction } = progress;
+  if (ratio == null || target == null) return "none";
+
+  if (direction === "at_most") {
+    if (ratio > 1) return "over"; // over the limit — too much
+    if (ratio >= 0.85) return "moderate"; // nearing the cap
+    return "good"; // comfortably under
+  }
+
+  // at_least / around — filling toward the target
+  if (ratio >= 1.2) return "over"; // too much
+  if (ratio >= 0.85) return "good"; // at / near target
+  if (ratio >= 0.5) return "moderate"; // moderate
+  return "low"; // really low
 }
 
 /** Fraction 0..1 for a ring arc (caps at 1 for display). */

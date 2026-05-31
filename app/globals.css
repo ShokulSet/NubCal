@@ -27,6 +27,11 @@
   --color-leaf: #1f6b43;
   --color-chili: #c0410c;
   --color-amber: #a8680a;
+  /* progress zones: really low → moderate → good → too much (120%+) */
+  --color-low: #bf3b2b;
+  --color-mod: #b8860b;
+  --color-good: #1f6b43;
+  --color-over: #7d57a6;
   --color-background: var(--paper);
   --color-foreground: var(--ink);
   --font-display: var(--font-fraunces), var(--font-trirong), Georgia, "Times New Roman", serif;

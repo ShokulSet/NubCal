@@ -1,14 +1,14 @@
 import { cn } from "@/lib/utils";
 import { roundTo } from "@/lib/nutrition/format";
-import { ringFraction } from "@/lib/nutrition/math";
-import type { Progress } from "@/lib/nutrition/types";
+import { ringFraction, progressZone } from "@/lib/nutrition/math";
+import type { Progress, ProgressZone } from "@/lib/nutrition/types";
 
-const STATUS_STROKE: Record<Progress["status"], string> = {
+const ZONE_STROKE: Record<ProgressZone, string> = {
   none: "stroke-ink/15",
-  under: "stroke-amber",
-  on_track: "stroke-leaf",
-  met: "stroke-leaf",
-  over: "stroke-chili",
+  low: "stroke-low",
+  moderate: "stroke-mod",
+  good: "stroke-good",
+  over: "stroke-over",
 };
 
 /** Full-width hero for the calorie target: big ring + remaining/over. */
@@ -22,6 +22,7 @@ export function CalorieHero({ progress }: { progress: Progress }) {
   const total = roundTo(progress.total, 0);
   const target = progress.target != null ? roundTo(progress.target, 0) : null;
   const delta = progress.target != null ? Math.round(progress.target - progress.total) : null;
+  const zone = progressZone(progress);
 
   return (
     <div className="flex items-center gap-5">
@@ -46,7 +47,7 @@ export function CalorieHero({ progress }: { progress: Progress }) {
             strokeDashoffset={offset}
             className={cn(
               "transition-[stroke-dashoffset] duration-500",
-              STATUS_STROKE[progress.status],
+              ZONE_STROKE[zone],
             )}
           />
         </svg>
@@ -73,7 +74,7 @@ export function CalorieHero({ progress }: { progress: Progress }) {
             <span className="ml-1 text-sm font-normal text-muted">kcal left</span>
           </p>
         ) : (
-          <p className="mt-1 text-2xl font-semibold text-chili">
+          <p className={cn("mt-1 text-2xl font-semibold", zone === "over" ? "text-over" : "text-chili")}>
             {Math.abs(delta)}
             <span className="ml-1 text-sm font-normal">kcal over</span>
           </p>

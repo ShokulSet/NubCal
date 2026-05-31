@@ -1,14 +1,14 @@
 import { cn } from "@/lib/utils";
 import { roundTo } from "@/lib/nutrition/format";
-import { ringFraction } from "@/lib/nutrition/math";
-import type { Progress } from "@/lib/nutrition/types";
+import { ringFraction, progressZone } from "@/lib/nutrition/math";
+import type { Progress, ProgressZone } from "@/lib/nutrition/types";
 
-const STATUS_STROKE: Record<Progress["status"], string> = {
+const ZONE_STROKE: Record<ProgressZone, string> = {
   none: "stroke-ink/15",
-  under: "stroke-amber",
-  on_track: "stroke-leaf",
-  met: "stroke-leaf",
-  over: "stroke-chili",
+  low: "stroke-low",
+  moderate: "stroke-mod",
+  good: "stroke-good",
+  over: "stroke-over",
 };
 
 export function NutrientRing({
@@ -48,7 +48,10 @@ export function NutrientRing({
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
-            className={cn("transition-[stroke-dashoffset] duration-500", STATUS_STROKE[progress.status])}
+            className={cn(
+              "transition-[stroke-dashoffset] duration-500",
+              ZONE_STROKE[progressZone(progress)],
+            )}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">

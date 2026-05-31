@@ -5,12 +5,20 @@ import { getAuthUserId } from "@/lib/supabase/auth";
 import { ensureDefaultNutrients } from "@/lib/data/setup";
 import { APP_TZ } from "@/lib/config";
 import { todayInTimezone } from "@/lib/nutrition/date";
-import { computeProgress } from "@/lib/nutrition/math";
+import { computeProgress, progressZone } from "@/lib/nutrition/math";
 import { roundTo } from "@/lib/nutrition/format";
 import { NutrientRing } from "@/components/nutrition/NutrientRing";
 import { CalorieHero } from "@/components/nutrition/CalorieHero";
 import { CalorieTrend } from "@/components/nutrition/CalorieTrend";
-import type { TargetDirection } from "@/lib/nutrition/types";
+import type { TargetDirection, ProgressZone } from "@/lib/nutrition/types";
+
+const ZONE_TEXT: Record<ProgressZone, string> = {
+  none: "text-ink",
+  low: "text-low",
+  moderate: "text-mod",
+  good: "text-good",
+  over: "text-over",
+};
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -72,6 +80,7 @@ export default async function TodayPage() {
   const onTrack = progresses.filter(
     (p) => p.progress.status === "met" || p.progress.status === "on_track",
   ).length;
+  const zoneByKey = new Map(progresses.map((p) => [p.n.key, progressZone(p.progress)]));
 
   const calorie = progresses.find((p) => p.n.is_energy);
   const macros = progresses.filter((p) => !p.n.is_energy);
@@ -169,9 +178,14 @@ export default async function TodayPage() {
               style={{ animationDelay: `${i * 35}ms` }}
             >
               <span className="text-sm text-ink/80">{n.display_name}</span>
-              <span className="tnum font-mono text-sm text-ink">
+              <span
+                className={cn(
+                  "tnum font-mono text-sm font-medium",
+                  ZONE_TEXT[zoneByKey.get(n.key) ?? "none"],
+                )}
+              >
                 {roundTo(totalByKey.get(n.key) ?? 0, 1)}{" "}
-                <span className="text-muted">{n.unit}</span>
+                <span className="font-normal text-muted">{n.unit}</span>
               </span>
             </li>
           ))}
