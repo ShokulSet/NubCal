@@ -1,0 +1,68 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { computeProgress, progressZone } from "@/lib/nutrition/math";
+import type { ProgressZone, TargetDirection } from "@/lib/nutrition/types";
+
+export const dynamic = "force-dynamic";
+
+// Zone palette as hexes so the Scriptable widget can draw without re-deriving.
+const ZONE_HEX: Record<ProgressZone, string> = {
+  none: "#8c8472",
+  low: "#bf3b2b",
+  moderate: "#b8860b",
+  good: "#1f6b43",
+  over: "#7d57a6",
+};
+
+interface RpcItem {
+  key: string;
+  label: string;
+  unit: string;
+  is_energy: boolean;
+  total: number;
+  target: number | null;
+  direction: string;
+}
+interface WidgetPayload {
+  date: string;
+  items: RpcItem[];
+}
+
+/** Read-only today's totals for a home-screen widget, keyed by a per-user token. */
+export async function GET(req: Request) {
+  const token = new URL(req.url).searchParams.get("token");
+  if (!token || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token)) {
+    return NextResponse.json({ error: "missing or invalid token" }, { status: 400 });
+  }
+
+  const supabase = await createClient();
+  const rpc = supabase.rpc as unknown as (
+    fn: string,
+    args: Record<string, unknown>,
+  ) => Promise<{ data: WidgetPayload | null; error: { message: string } | null }>;
+  const { data, error } = await rpc("widget_today", { p_token: token });
+
+  if (error) return NextResponse.json({ error: "lookup failed" }, { status: 500 });
+  if (!data) return NextResponse.json({ error: "not found" }, { status: 404 });
+
+  const items = (data.items ?? []).map((it) => {
+    const progress = computeProgress(it.total, it.target, it.direction as TargetDirection);
+    const zone = progressZone(progress);
+    return {
+      key: it.key,
+      label: it.label,
+      unit: it.unit,
+      is_energy: it.is_energy,
+      total: it.total,
+      target: it.target,
+      ratio: progress.ratio,
+      zone,
+      color: ZONE_HEX[zone],
+    };
+  });
+
+  return NextResponse.json(
+    { date: data.date, items },
+    { headers: { "Cache-Control": "no-store" } },
+  );
+}

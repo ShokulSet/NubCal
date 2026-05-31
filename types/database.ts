@@ -291,6 +291,7 @@ export type Database = {
           timezone: string
           unit_system: string
           updated_at: string
+          widget_token: string
         }
         Insert: {
           avatar_url?: string | null
@@ -302,6 +303,7 @@ export type Database = {
           timezone?: string
           unit_system?: string
           updated_at?: string
+          widget_token?: string
         }
         Update: {
           avatar_url?: string | null
@@ -313,6 +315,7 @@ export type Database = {
           timezone?: string
           unit_system?: string
           updated_at?: string
+          widget_token?: string
         }
         Relationships: []
       }
@@ -329,7 +332,7 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      widget_today: { Args: { p_token: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never

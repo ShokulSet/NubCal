@@ -3,12 +3,26 @@ import { ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/(auth)/actions";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { WidgetField } from "@/components/settings/WidgetField";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  let widgetUrl: string | null = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("widget_token")
+      .eq("id", user.id)
+      .single();
+    const base = process.env.NEXT_PUBLIC_APP_URL ?? "";
+    if (profile?.widget_token) {
+      widgetUrl = `${base}/api/widget?token=${profile.widget_token}`;
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -38,6 +52,17 @@ export default async function SettingsPage() {
           <ChevronRight className="h-4 w-4 text-muted" />
         </Link>
       </nav>
+
+      {widgetUrl && (
+        <section className="space-y-2">
+          <p className="text-sm text-muted">Home-screen widget</p>
+          <WidgetField url={widgetUrl} />
+          <p className="text-xs text-muted">
+            Paste this link into the Scriptable app to show today&apos;s totals on your home
+            screen. Keep it private — anyone with the link can read today&apos;s numbers.
+          </p>
+        </section>
+      )}
 
       <form action={signOut}>
         <SubmitButton variant="outline" className="w-full" pendingLabel="Signing out…">
