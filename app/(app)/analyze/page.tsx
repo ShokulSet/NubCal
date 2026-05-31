@@ -2,15 +2,19 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Sparkles, FileText } from "lucide-react";
+import { Sparkles, FileText, PencilLine } from "lucide-react";
 import { LabelOcr } from "@/components/scan/LabelOcr";
 import { MealPhoto } from "@/components/scan/MealPhoto";
+import { MealText } from "@/components/scan/MealText";
 import { cn } from "@/lib/utils";
+
+type Tab = "meal" | "text" | "label";
 
 function AnalyzeInner() {
   const sp = useSearchParams();
-  const [tab, setTab] = useState<"meal" | "label">(
-    sp.get("tab") === "label" ? "label" : "meal",
+  const initial = sp.get("tab");
+  const [tab, setTab] = useState<Tab>(
+    initial === "label" ? "label" : initial === "text" ? "text" : "meal",
   );
   const barcode = sp.get("barcode") ?? undefined;
 
@@ -27,16 +31,25 @@ function AnalyzeInner() {
         <h1 className="text-2xl font-semibold tracking-tight">Analyze</h1>
       </header>
 
-      <div className="grid grid-cols-2 gap-1 rounded-full border border-line bg-surface/40 p-1">
+      <div className="grid grid-cols-3 gap-1 rounded-full border border-line bg-surface/40 p-1">
         <button type="button" onClick={() => setTab("meal")} className={tabClass(tab === "meal")}>
-          <Sparkles className="h-4 w-4" /> Meal photo
+          <Sparkles className="h-4 w-4" /> Photo
+        </button>
+        <button type="button" onClick={() => setTab("text")} className={tabClass(tab === "text")}>
+          <PencilLine className="h-4 w-4" /> Describe
         </button>
         <button type="button" onClick={() => setTab("label")} className={tabClass(tab === "label")}>
           <FileText className="h-4 w-4" /> Label
         </button>
       </div>
 
-      {tab === "meal" ? <MealPhoto /> : <LabelOcr barcode={barcode} />}
+      {tab === "meal" ? (
+        <MealPhoto />
+      ) : tab === "text" ? (
+        <MealText />
+      ) : (
+        <LabelOcr barcode={barcode} />
+      )}
     </div>
   );
 }

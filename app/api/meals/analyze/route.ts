@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateJson } from "@/lib/gcp/vertex";
-import { MEAL_SYSTEM_INSTRUCTION, analyzeMealPrompt } from "@/lib/prompts/analyze-meal";
+import {
+  MEAL_SYSTEM_INSTRUCTION,
+  analyzeMealPrompt,
+  describeMealPrompt,
+} from "@/lib/prompts/analyze-meal";
 import { mealResultSchema, cleanNutrients } from "@/lib/nutrition/capture-schema";
 
 export const runtime = "nodejs";
@@ -17,19 +21,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  let body: { imageBase64?: string; mimeType?: string; hint?: string };
+  let body: { imageBase64?: string; mimeType?: string; hint?: string; text?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "bad request" }, { status: 400 });
   }
-  if (!body.imageBase64) {
-    return NextResponse.json({ error: "missing image" }, { status: 400 });
+  const hasImage = !!body.imageBase64;
+  const hasText = !!(body.text && body.text.trim());
+  if (!hasImage && !hasText) {
+    return NextResponse.json({ error: "missing image or text" }, { status: 400 });
   }
 
   try {
     const { data, model } = await generateJson({
-      prompt: analyzeMealPrompt(body.hint),
+      prompt: hasImage ? analyzeMealPrompt(body.hint) : describeMealPrompt(body.text!),
       systemInstruction: MEAL_SYSTEM_INSTRUCTION,
       imageBase64: body.imageBase64,
       mimeType: body.mimeType ?? "image/jpeg",

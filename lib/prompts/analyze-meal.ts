@@ -12,13 +12,7 @@ Guidance:
 - Estimate only: energy_kcal, protein, carbs, fat, saturated_fat, sugar, fiber, sodium (mg). Do NOT estimate vitamins/minerals.
 - These are estimates — be honest with per-item confidence (0..1) and list assumptions. If the image is not food, set not_food true and items to [].`;
 
-export function analyzeMealPrompt(hint?: string): string {
-  const hintLine =
-    hint && hint.trim()
-      ? `\nUser hint (AUTHORITATIVE — identify the food as this, even if the photo looks like a more common look-alike): "${hint.trim()}".`
-      : "";
-  return `Analyze this meal photo and return JSON of EXACTLY this shape:${hintLine}
-{
+const MEAL_JSON_SHAPE = `{
   "not_food": boolean,
   "overall_confidence": number,
   "items": [
@@ -37,4 +31,21 @@ export function analyzeMealPrompt(hint?: string): string {
     }
   ]
 }`;
+
+export function analyzeMealPrompt(hint?: string): string {
+  const hintLine =
+    hint && hint.trim()
+      ? `\nUser hint (AUTHORITATIVE — identify the food as this, even if the photo looks like a more common look-alike): "${hint.trim()}".`
+      : "";
+  return `Analyze this meal photo and return JSON of EXACTLY this shape:${hintLine}
+${MEAL_JSON_SHAPE}`;
+}
+
+/** Text-only: the user typed what they ate, no photo. */
+export function describeMealPrompt(text: string): string {
+  return `The user describes what they ate IN WORDS (there is no photo). Estimate the foods, portions, and nutrients from this description.
+The description is AUTHORITATIVE for what the foods are — do not swap a dish for a more common look-alike. If the user gives amounts ("2 eggs", "a bowl"), use them; if not, assume a typical single portion and note that in assumptions. Set not_food true only if the text names no food at all.
+Description: "${text.trim()}"
+Return JSON of EXACTLY this shape:
+${MEAL_JSON_SHAPE}`;
 }
