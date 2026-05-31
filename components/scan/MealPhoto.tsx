@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Camera, Loader2, Sparkles, Trash2 } from "lucide-react";
+import { Camera, Loader2, Minus, Plus, Sparkles, Trash2 } from "lucide-react";
 import { fileToDownscaledBase64 } from "@/lib/image";
 import { logMealPhoto } from "@/app/(app)/scan/actions";
 import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -15,6 +16,7 @@ const selectClass =
 interface ApiItem {
   name_en: string;
   name_th: string | null;
+  count: number;
   estimated_grams: number;
   grams_low: number | null;
   grams_high: number | null;
@@ -26,6 +28,7 @@ interface ApiItem {
 
 interface EditItem {
   name: string;
+  count: number;
   grams: number;
   per100: Record<string, number>;
   nutrients: Record<string, number>;
@@ -34,6 +37,8 @@ interface EditItem {
   household: string | null;
   confidence: number;
 }
+
+const r1 = (x: number) => Math.round(x * 10) / 10;
 
 function scale(per100: Record<string, number>, grams: number): Record<string, number> {
   const out: Record<string, number> = {};
@@ -53,6 +58,7 @@ function toEdit(it: ApiItem): EditItem {
   }
   return {
     name: it.name_th || it.name_en || "Food",
+    count: Math.max(1, Math.round(it.count || 1)),
     grams: it.estimated_grams || 100,
     per100: per100 ?? {},
     nutrients: it.nutrients ?? {},
@@ -113,6 +119,13 @@ export function MealPhoto() {
   function setName(idx: number, name: string) {
     setItems((its) => its.map((it, i) => (i === idx ? { ...it, name } : it)));
   }
+  function bumpCount(idx: number, delta: number) {
+    setItems((its) =>
+      its.map((it, i) =>
+        i === idx ? { ...it, count: Math.max(1, it.count + delta) } : it,
+      ),
+    );
+  }
   function removeItem(idx: number) {
     setItems((its) => its.filter((_, i) => i !== idx));
   }
@@ -136,7 +149,12 @@ export function MealPhoto() {
     }
 
     const payload = JSON.stringify(
-      items.map((i) => ({ name: i.name, grams: i.grams, nutrients: i.nutrients })),
+      items.map((i) => ({
+        name: i.name,
+        count: i.count,
+        grams: i.grams,
+        nutrients: i.nutrients,
+      })),
     );
 
     return (
@@ -175,9 +193,35 @@ export function MealPhoto() {
                 </div>
 
                 <div className="flex items-end gap-3">
-                  <div className="w-28 space-y-1">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Count</Label>
+                    <div className="flex h-10 items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        aria-label="One fewer"
+                        onClick={() => bumpCount(idx, -1)}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-7 text-center font-mono tabular-nums">{it.count}</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        aria-label="One more"
+                        onClick={() => bumpCount(idx, 1)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="w-24 space-y-1">
                     <Label htmlFor={`g-${idx}`} className="text-xs">
-                      Grams
+                      Grams each
                     </Label>
                     <Input
                       id={`g-${idx}`}
@@ -189,22 +233,29 @@ export function MealPhoto() {
                       className="h-10"
                     />
                   </div>
-                  <p className="flex-1 pb-2 text-xs text-muted">
+                </div>
+                {(it.household || (it.gramsLow != null && it.gramsHigh != null)) && (
+                  <p className="text-xs text-muted">
                     {it.household ? `${it.household} · ` : ""}
                     {it.gramsLow != null && it.gramsHigh != null
-                      ? `range ${it.gramsLow}–${it.gramsHigh} g`
+                      ? `range ${it.gramsLow}–${it.gramsHigh} g each`
                       : ""}
                   </p>
-                </div>
+                )}
 
-                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
                   <span className="font-semibold text-zinc-700 dark:text-zinc-300">
-                    {Math.round(n.energy_kcal ?? 0)} kcal
+                    {Math.round((n.energy_kcal ?? 0) * it.count)} kcal
                   </span>
-                  <span>P {n.protein ?? 0}g</span>
-                  <span>C {n.carbs ?? 0}g</span>
-                  <span>F {n.fat ?? 0}g</span>
-                  {n.sodium != null && <span>Na {n.sodium}mg</span>}
+                  <span>P {r1((n.protein ?? 0) * it.count)}g</span>
+                  <span>C {r1((n.carbs ?? 0) * it.count)}g</span>
+                  <span>F {r1((n.fat ?? 0) * it.count)}g</span>
+                  {n.sodium != null && <span>Na {r1(n.sodium * it.count)}mg</span>}
+                  {it.count > 1 && (
+                    <span className="text-muted/70">
+                      · {it.count} × {Math.round(n.energy_kcal ?? 0)} kcal each
+                    </span>
+                  )}
                 </div>
               </div>
             );
@@ -231,9 +282,9 @@ export function MealPhoto() {
           >
             Retake
           </Button>
-          <Button type="submit" className="flex-1">
+          <SubmitButton className="flex-1" pendingLabel="Logging…">
             Log {items.length} item{items.length === 1 ? "" : "s"}
-          </Button>
+          </SubmitButton>
         </div>
       </form>
     );

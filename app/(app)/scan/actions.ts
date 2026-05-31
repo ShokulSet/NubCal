@@ -145,6 +145,7 @@ export async function logScannedProduct(formData: FormData) {
 
 interface MealPhotoItem {
   name?: string;
+  count?: number;
   grams?: number;
   nutrients?: Record<string, number>;
 }
@@ -196,7 +197,7 @@ export async function logMealPhoto(formData: FormData) {
       user_id: user.id,
       food_id: null,
       name: String(i.name),
-      quantity: 1,
+      quantity: Math.max(1, Math.round(Number(i.count) || 1)),
       serving_size: Number(i.grams) || 100,
       serving_unit: "g",
       nutrients_snapshot: i.nutrients as Record<string, number>,

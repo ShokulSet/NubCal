@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { signUp, signInWithGoogle } from "../actions";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -29,9 +29,9 @@ export default async function SignupPage({
 
       <div className="space-y-5 rounded-3xl border border-line bg-surface/60 p-6">
         <form action={signInWithGoogle}>
-          <Button type="submit" variant="outline" className="w-full">
+          <SubmitButton variant="outline" className="w-full" pendingLabel="Redirecting…">
             Continue with Google
-          </Button>
+          </SubmitButton>
         </form>
 
         <div className="flex items-center gap-3">
@@ -64,9 +64,9 @@ export default async function SignupPage({
               placeholder="At least 6 characters"
             />
           </div>
-          <Button type="submit" className="w-full">
+          <SubmitButton className="w-full" pendingLabel="Creating…">
             Create account
-          </Button>
+          </SubmitButton>
         </form>
       </div>
 

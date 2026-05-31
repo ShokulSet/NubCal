@@ -6,6 +6,7 @@ import { fileToDownscaledBase64 } from "@/lib/image";
 import { NUTRIENT_META, NUTRIENT_ORDER } from "@/lib/nutrition/meta";
 import { logScannedProduct } from "@/app/(app)/scan/actions";
 import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -190,9 +191,9 @@ export function LabelOcr({ barcode }: { barcode?: string }) {
           >
             Retake
           </Button>
-          <Button type="submit" className="flex-1">
+          <SubmitButton className="flex-1" pendingLabel="Saving…">
             Save &amp; log
-          </Button>
+          </SubmitButton>
         </div>
       </form>
     );

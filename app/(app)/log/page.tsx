@@ -20,13 +20,20 @@ export default async function LogPage() {
       .order("name"),
     supabase
       .from("meals")
-      .select("id, meal_type, meal_items(id, name, quantity, serving_size, serving_unit)")
+      .select(
+        "id, meal_type, meal_items(id, name, quantity, serving_size, serving_unit, nutrients_snapshot)",
+      )
       .eq("user_id", userId)
       .eq("eaten_on", eatenOn),
   ]);
 
   const items = (meals ?? []).flatMap((m) =>
-    (m.meal_items ?? []).map((it) => ({ ...it, meal_type: m.meal_type })),
+    (m.meal_items ?? []).map((it) => ({
+      ...it,
+      meal_id: m.id,
+      meal_type: m.meal_type,
+      nutrients_snapshot: (it.nutrients_snapshot ?? {}) as Record<string, number>,
+    })),
   );
 
   return (

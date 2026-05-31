@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, Keyboard, Loader2, ScanBarcode } from "lucide-react";
 import { logScannedProduct } from "./actions";
 import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 
 const FORMATS = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128"];
@@ -217,9 +218,9 @@ export default function ScanPage() {
               <Button type="button" variant="outline" className="flex-1" onClick={reset}>
                 Scan another
               </Button>
-              <Button type="submit" className="flex-1">
+              <SubmitButton className="flex-1" pendingLabel="Logging…">
                 Log it
-              </Button>
+              </SubmitButton>
             </div>
           </form>
         </div>

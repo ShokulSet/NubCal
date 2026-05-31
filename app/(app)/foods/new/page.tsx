@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAuthUserId } from "@/lib/supabase/auth";
 import { ensureDefaultNutrients } from "@/lib/data/setup";
 import { createFood } from "../actions";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 const SERVING_UNITS = ["g", "ml", "piece", "cup", "tbsp", "tsp"];
 
@@ -130,9 +130,9 @@ export default async function NewFoodPage({
         </p>
       </section>
 
-      <Button type="submit" className="w-full">
+      <SubmitButton className="w-full" pendingLabel="Saving…">
         Save food
-      </Button>
+      </SubmitButton>
     </form>
   );
 }

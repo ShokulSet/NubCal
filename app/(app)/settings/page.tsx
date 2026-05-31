@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/(auth)/actions";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -40,9 +40,9 @@ export default async function SettingsPage() {
       </nav>
 
       <form action={signOut}>
-        <Button type="submit" variant="outline" className="w-full">
+        <SubmitButton variant="outline" className="w-full" pendingLabel="Signing out…">
           Sign out
-        </Button>
+        </SubmitButton>
       </form>
     </div>
   );

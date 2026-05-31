@@ -7,7 +7,7 @@ import { ensureDefaultNutrients } from "@/lib/data/setup";
 import { DEFAULT_DIRECTION, UNIT_OPTIONS, KIND_OPTIONS } from "@/lib/nutrition/defaults";
 import { addNutrient } from "./actions";
 import { TargetRow } from "@/components/targets/TargetRow";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -111,9 +111,9 @@ export default async function TargetsPage() {
               </select>
             </div>
           </div>
-          <Button type="submit" variant="outline" className="w-full">
+          <SubmitButton variant="outline" className="w-full" pendingLabel="Adding…">
             Add nutrient
-          </Button>
+          </SubmitButton>
         </form>
       </details>
     </div>

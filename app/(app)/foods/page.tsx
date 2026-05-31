@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAuthUserId } from "@/lib/supabase/auth";
 import { deleteFood } from "./actions";
 import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 
 export default async function FoodsPage({
@@ -60,13 +61,14 @@ export default async function FoodsPage({
         </div>
       ) : (
         <ul className="space-y-2">
-          {foods.map((f) => {
+          {foods.map((f, i) => {
             const nutrients = (f.nutrients ?? {}) as Record<string, number>;
             const kcal = nutrients.energy_kcal;
             return (
               <li
                 key={f.id}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface/40 p-3"
+                className="animate-rise flex items-center justify-between gap-3 rounded-2xl border border-line bg-surface/40 p-3"
+                style={{ animationDelay: `${Math.min(i, 12) * 30}ms` }}
               >
                 <div className="min-w-0">
                   <p className="truncate font-medium">{f.name}</p>
@@ -78,9 +80,9 @@ export default async function FoodsPage({
                 </div>
                 <form action={deleteFood}>
                   <input type="hidden" name="id" value={f.id} />
-                  <Button type="submit" variant="ghost" size="icon" aria-label="Delete food">
+                  <SubmitButton variant="ghost" size="icon" aria-label="Delete food">
                     <Trash2 className="h-4 w-4 text-muted" />
-                  </Button>
+                  </SubmitButton>
                 </form>
               </li>
             );

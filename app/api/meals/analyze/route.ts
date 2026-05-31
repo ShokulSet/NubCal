@@ -45,6 +45,7 @@ export async function POST(req: Request) {
     const items = r.items.map((it) => ({
       name_en: it.name_en || "",
       name_th: it.name_th ?? null,
+      count: Math.max(1, Math.round(it.count || 1)),
       estimated_grams: it.estimated_grams || 0,
       grams_low: it.grams_low ?? null,
       grams_high: it.grams_high ?? null,

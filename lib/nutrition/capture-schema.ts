@@ -79,6 +79,9 @@ const mealNutrients = z
 export const mealItemSchema = z.object({
   name_en: z.string().optional().default(""),
   name_th: z.string().nullable().optional(),
+  // How many identical pieces this item represents. grams/nutrients/per_100g
+  // describe ONE piece; the app multiplies by count when logging.
+  count: z.number().optional().default(1),
   estimated_grams: z.number().optional().default(0),
   grams_low: z.number().nullable().optional(),
   grams_high: z.number().nullable().optional(),

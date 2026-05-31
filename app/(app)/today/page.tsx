@@ -164,9 +164,10 @@ export default async function TodayPage() {
             <li
               key={n.id}
               className={cn(
-                "flex items-center justify-between px-4 py-3",
+                "animate-rise flex items-center justify-between px-4 py-3",
                 i > 0 && "border-t border-line",
               )}
+              style={{ animationDelay: `${i * 35}ms` }}
             >
               <span className="text-sm text-ink/80">{n.display_name}</span>
               <span className="tnum font-mono text-sm text-ink">
