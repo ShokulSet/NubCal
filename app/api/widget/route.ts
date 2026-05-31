@@ -36,16 +36,13 @@ export async function GET(req: Request) {
   }
 
   const supabase = await createClient();
-  const rpc = supabase.rpc as unknown as (
-    fn: string,
-    args: Record<string, unknown>,
-  ) => Promise<{ data: WidgetPayload | null; error: { message: string } | null }>;
-  const { data, error } = await rpc("widget_today", { p_token: token });
+  const { data, error } = await supabase.rpc("widget_today", { p_token: token });
 
   if (error) return NextResponse.json({ error: "lookup failed" }, { status: 500 });
   if (!data) return NextResponse.json({ error: "not found" }, { status: 404 });
 
-  const items = (data.items ?? []).map((it) => {
+  const payload = data as unknown as WidgetPayload;
+  const items = (payload.items ?? []).map((it) => {
     const progress = computeProgress(it.total, it.target, it.direction as TargetDirection);
     const zone = progressZone(progress);
     return {
@@ -62,7 +59,7 @@ export async function GET(req: Request) {
   });
 
   return NextResponse.json(
-    { date: data.date, items },
+    { date: payload.date, items },
     { headers: { "Cache-Control": "no-store" } },
   );
 }
