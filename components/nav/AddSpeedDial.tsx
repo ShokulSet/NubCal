@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { NotebookPen, Plus, ScanBarcode, Sparkles } from "lucide-react";
+import { Apple, Plus, ScanBarcode, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Top-to-bottom display order (AI furthest from the +, Log nearest).
+// Top-to-bottom display order (AI furthest from the +, Food nearest).
 const ACTIONS = [
   { href: "/analyze", label: "AI", icon: Sparkles },
   { href: "/scan", label: "Scan", icon: ScanBarcode },
-  { href: "/log", label: "Log", icon: NotebookPen },
+  { href: "/foods", label: "Food", icon: Apple },
 ];
 
 export function AddSpeedDial() {
