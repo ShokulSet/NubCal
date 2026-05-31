@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, ImagePlus, Loader2 } from "lucide-react";
 import { fileToDownscaledBase64, videoFrameToBase64 } from "@/lib/image";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { CameraView } from "./CameraView";
 import { MealReview, toEdit, type ApiItem, type EditItem } from "./MealReview";
 
 type Stage = "idle" | "camera" | "processing" | "review";
@@ -106,18 +105,6 @@ export function MealPhoto({ autoCamera = false }: { autoCamera?: boolean }) {
     };
   }, [stage]);
 
-  const hintField = (
-    <div className="space-y-2">
-      <Label htmlFor="meal-hint">Hint (optional)</Label>
-      <Input
-        id="meal-hint"
-        value={hint}
-        onChange={(e) => setHint(e.target.value)}
-        placeholder="e.g. chicken pad thai, no egg"
-      />
-    </div>
-  );
-
   if (stage === "processing") {
     return (
       <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted">
@@ -150,43 +137,47 @@ export function MealPhoto({ autoCamera = false }: { autoCamera?: boolean }) {
 
   if (stage === "camera") {
     return (
-      <div className="space-y-3">
-        {hintField}
-        <div className="relative aspect-[3/4] overflow-hidden rounded-3xl bg-ink">
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            autoPlay
-            className="h-full w-full object-cover"
+      <CameraView
+        videoRef={videoRef}
+        title="Analyze meal"
+        caption="Center your plate, then tap to capture"
+        onClose={() => setStage("idle")}
+        hint={
+          <input
+            value={hint}
+            onChange={(e) => setHint(e.target.value)}
+            placeholder="Add a hint — e.g. chicken pad thai"
+            aria-label="Hint (optional)"
+            className="h-11 w-full rounded-full border border-paper/25 bg-black/30 px-4 text-sm text-paper outline-none backdrop-blur-md placeholder:text-paper/55 focus:border-paper/55"
           />
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="relative h-2/3 w-10/12 rounded-2xl">
-              <span className="absolute left-0 top-0 h-7 w-7 rounded-tl-xl border-l-2 border-t-2 border-paper/90" />
-              <span className="absolute right-0 top-0 h-7 w-7 rounded-tr-xl border-r-2 border-t-2 border-paper/90" />
-              <span className="absolute bottom-0 left-0 h-7 w-7 rounded-bl-xl border-b-2 border-l-2 border-paper/90" />
-              <span className="absolute bottom-0 right-0 h-7 w-7 rounded-br-xl border-b-2 border-r-2 border-paper/90" />
-            </div>
+        }
+        footer={
+          <div className="flex items-center justify-between">
+            <label
+              aria-label="Upload a photo instead"
+              className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-black/35 text-paper backdrop-blur-md transition active:scale-90"
+            >
+              <ImagePlus className="h-5 w-5" />
+              <input type="file" accept="image/*" className="hidden" onChange={onFile} />
+            </label>
+            <button
+              type="button"
+              onClick={capture}
+              aria-label="Capture photo"
+              className="group relative h-[74px] w-[74px]"
+            >
+              <span className="absolute inset-0 rounded-full border-[3px] border-paper/85" />
+              <span className="absolute inset-[7px] rounded-full bg-paper transition group-active:scale-90" />
+            </button>
+            {/* Balances the upload button so the shutter stays centered. */}
+            <span className="h-12 w-12" aria-hidden />
           </div>
-        </div>
-        <p className="text-center text-xs text-muted">A clear, top-down shot works best.</p>
-        <div className="flex gap-2">
-          <Button variant="outline" className="flex-1" onClick={() => setStage("idle")}>
-            Back
-          </Button>
-          <Button className="flex-1" onClick={capture}>
-            <Camera className="h-4 w-4" /> Capture
-          </Button>
-        </div>
-        <label className={uploadClass}>
-          <ImagePlus className="h-4 w-4" /> Upload instead
-          <input type="file" accept="image/*" className="hidden" onChange={onFile} />
-        </label>
-      </div>
+        }
+      />
     );
   }
 
-  // idle stage
+  // idle stage — mirrors the barcode scanner's idle screen for consistency.
   return (
     <div className="space-y-4">
       {error && (
@@ -194,15 +185,22 @@ export function MealPhoto({ autoCamera = false }: { autoCamera?: boolean }) {
           {error}
         </p>
       )}
-      {hintField}
-      <div className="flex flex-col gap-2">
-        <Button onClick={() => setStage("camera")}>
-          <Camera className="h-4 w-4" /> Open camera
-        </Button>
-        <label className={uploadClass}>
-          <ImagePlus className="h-4 w-4" /> Upload photo
-          <input type="file" accept="image/*" className="hidden" onChange={onFile} />
-        </label>
+      <div className="space-y-5 rounded-3xl border border-dashed border-line p-8 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-leaf/10 text-leaf">
+          <Camera className="h-7 w-7" />
+        </div>
+        <p className="text-sm text-muted">
+          Snap your plate and let AI estimate the portions and macros.
+        </p>
+        <div className="flex flex-col gap-2">
+          <Button onClick={() => setStage("camera")}>
+            <Camera className="h-4 w-4" /> Open camera
+          </Button>
+          <label className={uploadClass}>
+            <ImagePlus className="h-4 w-4" /> Upload photo
+            <input type="file" accept="image/*" className="hidden" onChange={onFile} />
+          </label>
+        </div>
       </div>
     </div>
   );

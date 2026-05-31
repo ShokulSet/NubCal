@@ -144,3 +144,16 @@ input[type="number"] {
 .animate-rise {
   animation: rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade {
+  animation: fade 0.22s ease-out both;
+}

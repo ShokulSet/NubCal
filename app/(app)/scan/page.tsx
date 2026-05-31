@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, Keyboard, Loader2, ScanBarcode } from "lucide-react";
 import { logScannedProduct } from "./actions";
 import { NUTRIENT_META, NUTRIENT_ORDER } from "@/lib/nutrition/meta";
+import { CameraView } from "@/components/scan/CameraView";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
@@ -60,8 +61,11 @@ export default function ScanPage() {
   }
 
   // Deep-link (e.g. from the home-screen widget): open straight into the camera.
+  // An effect (not a lazy initializer) avoids a hydration mismatch — the server
+  // has no window and renders the idle state.
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("camera") === "1") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMode("camera");
     }
   }, []);
@@ -125,6 +129,7 @@ export default function ScanPage() {
         : null;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEditNutrients(product ? { ...product.nutrients } : {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result]);
@@ -289,35 +294,24 @@ export default function ScanPage() {
           )}
 
           {mode === "camera" && (
-            <div className="space-y-3">
-              <div className="relative aspect-[3/4] overflow-hidden rounded-3xl bg-ink">
-                <video
-                  ref={videoRef}
-                  playsInline
-                  muted
-                  autoPlay
-                  className="h-full w-full object-cover"
-                />
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <div className="relative h-44 w-10/12 max-w-xs">
-                    <span className="absolute left-0 top-0 h-7 w-7 rounded-tl-xl border-l-2 border-t-2 border-paper/90" />
-                    <span className="absolute right-0 top-0 h-7 w-7 rounded-tr-xl border-r-2 border-t-2 border-paper/90" />
-                    <span className="absolute bottom-0 left-0 h-7 w-7 rounded-bl-xl border-b-2 border-l-2 border-paper/90" />
-                    <span className="absolute bottom-0 right-0 h-7 w-7 rounded-br-xl border-b-2 border-r-2 border-paper/90" />
-                    <span className="animate-scanline absolute inset-x-3 h-0.5 rounded-full bg-leaf shadow-[0_0_14px_2px_rgba(31,107,67,0.7)]" />
-                  </div>
+            <CameraView
+              videoRef={videoRef}
+              title="Scan barcode"
+              caption="Center the barcode in the frame"
+              scanning
+              onClose={() => setMode("idle")}
+              footer={
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setMode("manual")}
+                    className="flex items-center gap-2 rounded-full bg-black/35 px-5 py-2.5 text-sm font-medium text-paper backdrop-blur-md transition active:scale-95"
+                  >
+                    <Keyboard className="h-4 w-4" /> Enter manually
+                  </button>
                 </div>
-              </div>
-              <p className="text-center text-xs text-muted">Center the barcode in the frame</p>
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => setMode("idle")}>
-                  Back
-                </Button>
-                <Button variant="outline" className="flex-1" onClick={() => setMode("manual")}>
-                  <Keyboard className="h-4 w-4" /> Manual
-                </Button>
-              </div>
-            </div>
+              }
+            />
           )}
 
           {mode === "manual" && (
