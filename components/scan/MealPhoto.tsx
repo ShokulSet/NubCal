@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Camera, Loader2, Minus, Plus, Sparkles, Trash2 } from "lucide-react";
 import { fileToDownscaledBase64 } from "@/lib/image";
+import { NUTRIENT_META, NUTRIENT_ORDER } from "@/lib/nutrition/meta";
 import { logMealPhoto } from "@/app/(app)/scan/actions";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -37,8 +38,6 @@ interface EditItem {
   household: string | null;
   confidence: number;
 }
-
-const r1 = (x: number) => Math.round(x * 10) / 10;
 
 function scale(per100: Record<string, number>, grams: number): Record<string, number> {
   const out: Record<string, number> = {};
@@ -118,6 +117,17 @@ export function MealPhoto() {
   }
   function setName(idx: number, name: string) {
     setItems((its) => its.map((it, i) => (i === idx ? { ...it, name } : it)));
+  }
+  function setNutrient(idx: number, key: string, raw: string) {
+    setItems((its) =>
+      its.map((it, i) => {
+        if (i !== idx) return it;
+        const next = { ...it.nutrients };
+        if (raw.trim() === "" || Number.isNaN(Number(raw))) delete next[key];
+        else next[key] = Number(raw);
+        return { ...it, nutrients: next };
+      }),
+    );
   }
   function bumpCount(idx: number, delta: number) {
     setItems((its) =>
@@ -243,19 +253,39 @@ export function MealPhoto() {
                   </p>
                 )}
 
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-                  <span className="font-semibold text-zinc-700 dark:text-zinc-300">
-                    {Math.round((n.energy_kcal ?? 0) * it.count)} kcal
-                  </span>
-                  <span>P {r1((n.protein ?? 0) * it.count)}g</span>
-                  <span>C {r1((n.carbs ?? 0) * it.count)}g</span>
-                  <span>F {r1((n.fat ?? 0) * it.count)}g</span>
-                  {n.sodium != null && <span>Na {r1(n.sodium * it.count)}mg</span>}
-                  {it.count > 1 && (
-                    <span className="text-muted/70">
-                      · {it.count} × {Math.round(n.energy_kcal ?? 0)} kcal each
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted">
+                      Nutrients{it.count > 1 ? " · per piece" : ""}
                     </span>
-                  )}
+                    <span className="text-[11px] text-muted">
+                      {it.count > 1
+                        ? `logs ${it.count}× → ${Math.round((n.energy_kcal ?? 0) * it.count)} kcal`
+                        : `${Math.round(n.energy_kcal ?? 0)} kcal`}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+                    {NUTRIENT_ORDER.map((key) => (
+                      <label key={key} className="flex items-center gap-2">
+                        <span className="min-w-0 flex-1 truncate text-xs text-muted">
+                          {NUTRIENT_META[key].label}
+                        </span>
+                        <Input
+                          type="number"
+                          step="any"
+                          inputMode="decimal"
+                          value={n[key] ?? ""}
+                          onChange={(e) => setNutrient(idx, key, e.target.value)}
+                          placeholder="—"
+                          aria-label={NUTRIENT_META[key].label}
+                          className="h-9 w-20 text-right"
+                        />
+                        <span className="w-7 text-[11px] text-muted">
+                          {NUTRIENT_META[key].unit}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
             );

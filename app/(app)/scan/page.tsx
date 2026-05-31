@@ -3,23 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, Keyboard, Loader2, ScanBarcode } from "lucide-react";
 import { logScannedProduct } from "./actions";
+import { NUTRIENT_META, NUTRIENT_ORDER } from "@/lib/nutrition/meta";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 
 const FORMATS = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128"];
 const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack", "other"];
-
-const NUTRIENT_META: Record<string, { label: string; unit: string }> = {
-  energy_kcal: { label: "Calories", unit: "kcal" },
-  protein: { label: "Protein", unit: "g" },
-  carbs: { label: "Carbs", unit: "g" },
-  fat: { label: "Fat", unit: "g" },
-  saturated_fat: { label: "Saturated fat", unit: "g" },
-  sugar: { label: "Sugar", unit: "g" },
-  fiber: { label: "Fiber", unit: "g" },
-  sodium: { label: "Sodium", unit: "mg" },
-};
 
 const selectClass = "h-11 w-full rounded-xl border border-line bg-surface/60 px-3";
 
@@ -45,6 +35,7 @@ export default function ScanPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ApiResult | null>(null);
+  const [editNutrients, setEditNutrients] = useState<Record<string, number>>({});
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   async function resolve(rawBarcode: string) {
@@ -126,6 +117,20 @@ export default function ScanPage() {
         ? result.resolved
         : null;
 
+  useEffect(() => {
+    setEditNutrients(product ? { ...product.nutrients } : {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result]);
+
+  function setNutrient(key: string, raw: string) {
+    setEditNutrients((cur) => {
+      const next = { ...cur };
+      if (raw.trim() === "" || Number.isNaN(Number(raw))) delete next[key];
+      else next[key] = Number(raw);
+      return next;
+    });
+  }
+
   return (
     <div className="space-y-6">
       <header>
@@ -162,24 +167,29 @@ export default function ScanPage() {
             </span>
           </div>
 
-          <ul className="overflow-hidden rounded-xl border border-line">
-            {Object.entries(product.nutrients).map(([key, value], i) => {
-              const meta = NUTRIENT_META[key];
-              return (
-                <li
-                  key={key}
-                  className={`flex justify-between px-3 py-2 text-sm ${
-                    i > 0 ? "border-t border-line" : ""
-                  }`}
-                >
-                  <span className="text-ink/75">{meta?.label ?? key}</span>
-                  <span className="tnum font-mono">
-                    {value} <span className="text-muted">{meta?.unit ?? ""}</span>
+          <div className="space-y-2 rounded-xl border border-line p-3">
+            <p className="text-xs font-medium text-muted">Per serving — tap to fix</p>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+              {NUTRIENT_ORDER.map((key) => (
+                <label key={key} className="flex items-center gap-2">
+                  <span className="min-w-0 flex-1 truncate text-xs text-muted">
+                    {NUTRIENT_META[key].label}
                   </span>
-                </li>
-              );
-            })}
-          </ul>
+                  <Input
+                    type="number"
+                    step="any"
+                    inputMode="decimal"
+                    value={editNutrients[key] ?? ""}
+                    onChange={(e) => setNutrient(key, e.target.value)}
+                    placeholder="—"
+                    aria-label={NUTRIENT_META[key].label}
+                    className="h-9 w-20 text-right"
+                  />
+                  <span className="w-7 text-[11px] text-muted">{NUTRIENT_META[key].unit}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
           <form action={logScannedProduct} className="space-y-3">
             <input
@@ -193,7 +203,7 @@ export default function ScanPage() {
                 brand: product.brand ?? null,
                 serving_size: product.serving_size,
                 serving_unit: product.serving_unit,
-                nutrients: product.nutrients,
+                nutrients: editNutrients,
               })}
             />
             <div className="flex gap-3">
