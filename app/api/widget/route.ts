@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { computeProgress, progressZone } from "@/lib/nutrition/math";
+import { computeProgress, progressZone, calorieZone } from "@/lib/nutrition/math";
 import type { ProgressZone, TargetDirection } from "@/lib/nutrition/types";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +44,7 @@ export async function GET(req: Request) {
   const payload = data as unknown as WidgetPayload;
   const items = (payload.items ?? []).map((it) => {
     const progress = computeProgress(it.total, it.target, it.direction as TargetDirection);
-    const zone = progressZone(progress);
+    const zone = it.is_energy ? calorieZone(it.total, it.target) : progressZone(progress);
     return {
       key: it.key,
       label: it.label,

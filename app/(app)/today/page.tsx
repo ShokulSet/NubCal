@@ -5,7 +5,7 @@ import { getAuthUserId } from "@/lib/supabase/auth";
 import { ensureDefaultNutrients } from "@/lib/data/setup";
 import { APP_TZ } from "@/lib/config";
 import { todayInTimezone } from "@/lib/nutrition/date";
-import { computeProgress, progressZone } from "@/lib/nutrition/math";
+import { computeProgress, progressZone, calorieZone } from "@/lib/nutrition/math";
 import { roundTo } from "@/lib/nutrition/format";
 import { NutrientRing } from "@/components/nutrition/NutrientRing";
 import { CalorieHero } from "@/components/nutrition/CalorieHero";
@@ -80,7 +80,14 @@ export default async function TodayPage() {
   const onTrack = progresses.filter(
     (p) => p.progress.status === "met" || p.progress.status === "on_track",
   ).length;
-  const zoneByKey = new Map(progresses.map((p) => [p.n.key, progressZone(p.progress)]));
+  const zoneByKey = new Map(
+    progresses.map((p) => [
+      p.n.key,
+      p.n.is_energy
+        ? calorieZone(p.progress.total, p.progress.target)
+        : progressZone(p.progress),
+    ]),
+  );
 
   const calorie = progresses.find((p) => p.n.is_energy);
   const macros = progresses.filter((p) => !p.n.is_energy);

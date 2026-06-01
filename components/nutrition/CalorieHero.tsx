@@ -1,7 +1,15 @@
 import { cn } from "@/lib/utils";
 import { roundTo } from "@/lib/nutrition/format";
-import { ringFraction, progressZone } from "@/lib/nutrition/math";
+import { ringFraction, calorieStatus, calorieZone, CALORIE_STATUS } from "@/lib/nutrition/math";
 import type { Progress, ProgressZone } from "@/lib/nutrition/types";
+
+const ZONE_TEXT: Record<ProgressZone, string> = {
+  none: "text-muted",
+  low: "text-low",
+  moderate: "text-mod",
+  good: "text-good",
+  over: "text-over",
+};
 
 const ZONE_STROKE: Record<ProgressZone, string> = {
   none: "stroke-ink/15",
@@ -22,7 +30,9 @@ export function CalorieHero({ progress }: { progress: Progress }) {
   const total = roundTo(progress.total, 0);
   const target = progress.target != null ? roundTo(progress.target, 0) : null;
   const delta = progress.target != null ? Math.round(progress.target - progress.total) : null;
-  const zone = progressZone(progress);
+  const status = calorieStatus(progress.total, progress.target);
+  const zone = calorieZone(progress.total, progress.target);
+  const statusInfo = CALORIE_STATUS[status];
 
   return (
     <div className="flex items-center gap-5">
@@ -74,9 +84,14 @@ export function CalorieHero({ progress }: { progress: Progress }) {
             <span className="ml-1 text-sm font-normal text-muted">kcal left</span>
           </p>
         ) : (
-          <p className={cn("mt-1 text-2xl font-semibold", zone === "over" ? "text-over" : "text-chili")}>
+          <p className="mt-1 text-2xl font-semibold text-chili">
             {Math.abs(delta)}
             <span className="ml-1 text-sm font-normal">kcal over</span>
+          </p>
+        )}
+        {statusInfo.label && (
+          <p className={cn("mt-1 text-sm font-medium", ZONE_TEXT[zone])}>
+            {statusInfo.label} {statusInfo.emoji}
           </p>
         )}
         <p className="mt-1 tnum font-mono text-xs text-muted">

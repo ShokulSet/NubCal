@@ -16,10 +16,9 @@ const WEEKDAYS_MON = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 const WEEKDAYS_SUN = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 const LEGEND: { zone: ProgressZone; label: string }[] = [
-  { zone: "low", label: "low" },
-  { zone: "moderate", label: "mod" },
-  { zone: "good", label: "good" },
-  { zone: "over", label: "over" },
+  { zone: "good", label: "on track" },
+  { zone: "moderate", label: "close" },
+  { zone: "low", label: "off" },
 ];
 
 /** Static month heatmap: each logged day tinted by its calorie zone. */

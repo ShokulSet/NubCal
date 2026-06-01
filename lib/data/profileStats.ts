@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
-import { computeProgress, progressZone } from "@/lib/nutrition/math";
+import { computeProgress, calorieZone } from "@/lib/nutrition/math";
 import { roundTo } from "@/lib/nutrition/format";
 import { todayInTimezone } from "@/lib/nutrition/date";
 import { APP_TZ } from "@/lib/config";
@@ -150,7 +150,7 @@ export async function getProfileStats(supabase: Client, userId: string): Promise
       day,
       kcal,
       logged,
-      zone: logged ? progressZone(computeProgress(kcal, calorieTarget, calorieDir)) : "none",
+      zone: logged ? calorieZone(kcal, calorieTarget) : "none",
       isToday: iso === today,
     });
   }

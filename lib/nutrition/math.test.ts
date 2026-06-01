@@ -5,6 +5,8 @@ import {
   dailyTotals,
   computeProgress,
   ringFraction,
+  calorieStatus,
+  calorieZone,
 } from "./math";
 
 describe("itemContribution", () => {
@@ -59,6 +61,43 @@ describe("computeProgress", () => {
     expect(computeProgress(80, 100, "around").status).toBe("under");
     expect(computeProgress(100, 100, "around").status).toBe("on_track");
     expect(computeProgress(120, 100, "around").status).toBe("over");
+  });
+});
+
+describe("calorieStatus", () => {
+  it("returns none without a usable target", () => {
+    expect(calorieStatus(2000, null)).toBe("none");
+    expect(calorieStatus(2000, 0)).toBe("none");
+  });
+  it("on track within -100..+300 (inclusive)", () => {
+    expect(calorieStatus(2000, 2000)).toBe("on_track"); // surplus 0
+    expect(calorieStatus(1900, 2000)).toBe("on_track"); // surplus -100
+    expect(calorieStatus(2300, 2000)).toBe("on_track"); // surplus +300
+  });
+  it("slight overage in (+300..+500]", () => {
+    expect(calorieStatus(2301, 2000)).toBe("slight_over");
+    expect(calorieStatus(2500, 2000)).toBe("slight_over"); // surplus +500
+  });
+  it("too much above +500", () => {
+    expect(calorieStatus(2501, 2000)).toBe("too_much");
+  });
+  it("slight deficit in [-300..-100)", () => {
+    expect(calorieStatus(1899, 2000)).toBe("slight_under"); // surplus -101
+    expect(calorieStatus(1700, 2000)).toBe("slight_under"); // surplus -300
+  });
+  it("too low below -300", () => {
+    expect(calorieStatus(1699, 2000)).toBe("too_low"); // surplus -301
+  });
+});
+
+describe("calorieZone", () => {
+  it("maps surplus statuses to green/amber/red, never purple", () => {
+    expect(calorieZone(2000, 2000)).toBe("good"); // on track
+    expect(calorieZone(2400, 2000)).toBe("moderate"); // slight over
+    expect(calorieZone(1800, 2000)).toBe("moderate"); // slight under
+    expect(calorieZone(2600, 2000)).toBe("low"); // too much
+    expect(calorieZone(1500, 2000)).toBe("low"); // too low
+    expect(calorieZone(2000, null)).toBe("none");
   });
 });
 

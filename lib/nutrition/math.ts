@@ -88,3 +88,51 @@ export function ringFraction(progress: Progress): number {
   if (progress.ratio == null) return 0;
   return Math.max(0, Math.min(1, progress.ratio));
 }
+
+/**
+ * Calorie-specific grade. Calories are the app's headline number, so they're
+ * judged by the absolute kcal surplus (actual − target), not the ratio bands
+ * used for macros. Five states, mapped to a green/amber/red palette (no purple).
+ */
+export type CalorieStatus =
+  | "none"
+  | "on_track"
+  | "slight_over"
+  | "too_much"
+  | "slight_under"
+  | "too_low";
+
+export function calorieStatus(total: number, target: number | null): CalorieStatus {
+  if (target == null || target <= 0) return "none";
+  const surplus = total - target;
+  if (surplus > 500) return "too_much";
+  if (surplus > 300) return "slight_over";
+  if (surplus >= -100) return "on_track";
+  if (surplus >= -300) return "slight_under";
+  return "too_low";
+}
+
+/** Calorie surplus status → existing colour zone (green/amber/red, never purple). */
+export function calorieZone(total: number, target: number | null): ProgressZone {
+  switch (calorieStatus(total, target)) {
+    case "on_track":
+      return "good";
+    case "slight_over":
+    case "slight_under":
+      return "moderate";
+    case "too_much":
+    case "too_low":
+      return "low";
+    default:
+      return "none";
+  }
+}
+
+export const CALORIE_STATUS: Record<CalorieStatus, { label: string; emoji: string }> = {
+  none: { label: "", emoji: "" },
+  on_track: { label: "On Track", emoji: "✅" },
+  slight_over: { label: "Slight Overage", emoji: "⚠️" },
+  too_much: { label: "Too Much", emoji: "❌" },
+  slight_under: { label: "Slight Deficit", emoji: "⚠️" },
+  too_low: { label: "Too Low", emoji: "❌" },
+};

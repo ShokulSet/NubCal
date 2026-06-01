@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { computeProgress, progressZone } from "@/lib/nutrition/math";
+import { calorieStatus, calorieZone } from "@/lib/nutrition/math";
 import type { ProgressZone } from "@/lib/nutrition/types";
 
 const ZONE_BAR: Record<ProgressZone, string> = {
@@ -33,7 +33,9 @@ export function CalorieTrend({ days, target }: { days: Day[]; target: number | n
   const avg = logged.length
     ? Math.round(logged.reduce((s, d) => s + d.kcal, 0) / logged.length)
     : 0;
-  const onTrack = target ? days.filter((d) => d.kcal >= target * 0.9).length : 0;
+  const onTrack = target
+    ? days.filter((d) => d.kcal > 0 && calorieStatus(d.kcal, target) === "on_track").length
+    : 0;
 
   return (
     <div className="space-y-3">
@@ -62,8 +64,7 @@ export function CalorieTrend({ days, target }: { days: Day[]; target: number | n
         <div className="flex h-full items-end gap-[3px]">
           {days.map((d, i) => {
             const empty = d.kcal <= 0;
-            const zone =
-              target != null ? progressZone(computeProgress(d.kcal, target, "around")) : "none";
+            const zone = target != null ? calorieZone(d.kcal, target) : "none";
             const h = Math.max(2, (d.kcal / max) * 100);
             return (
               <div

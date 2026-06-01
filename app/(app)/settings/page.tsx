@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { ChevronRight, UserRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getProfileStats } from "@/lib/data/profileStats";
-import { progressZone } from "@/lib/nutrition/math";
+import { calorieZone } from "@/lib/nutrition/math";
 import { signOut } from "@/app/(auth)/actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { WidgetField } from "@/components/settings/WidgetField";
@@ -72,7 +72,7 @@ export default async function ProfilePage() {
             <p
               className={cn(
                 "tnum mt-1.5 font-mono text-[1.8rem] leading-none",
-                ZONE_TEXT[progressZone(stats.calorieAvg)],
+                ZONE_TEXT[calorieZone(stats.calorieAvg.total, stats.calorieAvg.target)],
               )}
             >
               {avgKcal}
