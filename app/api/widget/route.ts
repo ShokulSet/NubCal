@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { computeProgress, progressZone, calorieZone } from "@/lib/nutrition/math";
+import {
+  computeProgress,
+  progressZone,
+  calorieZone,
+  calorieStatus,
+  CALORIE_STATUS,
+} from "@/lib/nutrition/math";
 import type { ProgressZone, TargetDirection } from "@/lib/nutrition/types";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +50,8 @@ export async function GET(req: Request) {
   const items = (payload.items ?? []).map((it) => {
     const progress = computeProgress(it.total, it.target, it.direction as TargetDirection);
     const zone = it.is_energy ? calorieZone(it.total, it.target) : progressZone(progress);
+    // Calories carry a surplus-based status label (mirrors the web CalorieHero pill).
+    const status = it.is_energy ? calorieStatus(it.total, it.target) : "none";
     return {
       key: it.key,
       label: it.label,
@@ -54,6 +62,8 @@ export async function GET(req: Request) {
       ratio: progress.ratio,
       zone,
       color: ZONE_HEX[zone],
+      status,
+      status_label: CALORIE_STATUS[status],
     };
   });
 

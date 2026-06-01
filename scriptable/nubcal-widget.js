@@ -207,6 +207,24 @@ try {
       if (i < rings.length - 1) row.addSpacer();
     });
   }
+
+  // ── Calorie status footer: dot + label, mirrors the web CalorieHero pill. ──
+  if (cal && cal.status_label) {
+    widget.addSpacer(isSmall ? 7 : 9);
+    const foot = widget.addStack();
+    foot.centerAlignContent();
+    foot.addSpacer();
+    const dot = foot.addText("●");
+    dot.font = Font.systemFont(isSmall ? 7 : 8);
+    dot.textColor = new Color(cal.color);
+    foot.addSpacer(5);
+    const st = foot.addText(cal.status_label.toUpperCase());
+    st.font = Font.semiboldSystemFont(isSmall ? 9 : 10);
+    st.textColor = new Color(cal.color);
+    st.lineLimit = 1;
+    foot.addSpacer();
+  }
+
   widget.addSpacer();
 } catch (e) {
   const t = widget.addText("Couldn't load NubCal");
