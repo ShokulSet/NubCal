@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, Plus, Sparkles, Trash2 } from "lucide-react";
+import { Minus, Plus, RotateCcw, Sparkles, Trash2 } from "lucide-react";
 import { NUTRIENT_META, NUTRIENT_ORDER } from "@/lib/nutrition/meta";
 import { logMealPhoto } from "@/app/(app)/scan/actions";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,8 @@ export interface EditItem {
   name: string;
   count: number;
   grams: number;
+  /** The AI's original per-piece gram estimate — fixed anchor for the slider. */
+  estimate: number;
   per100: Record<string, number>;
   nutrients: Record<string, number>;
   gramsLow: number | null;
@@ -49,14 +51,16 @@ function scale(per100: Record<string, number>, grams: number): Record<string, nu
 
 export function toEdit(it: ApiItem): EditItem {
   const grams = it.estimated_grams || 100;
-  let per100 = it.per_100g;
-  if ((!per100 || Object.keys(per100).length === 0) && it.estimated_grams > 0) {
+  let per100 = it.per_100g ?? {};
+  // Always derive a per-100g density when the model omits one, so dragging the
+  // weight slider scales every nutrient instead of wiping them to zero. Use the
+  // effective `grams` (estimate or the 100 g fallback) as the basis.
+  if (Object.keys(per100).length === 0 && Object.keys(it.nutrients ?? {}).length > 0) {
     per100 = {};
     for (const [k, v] of Object.entries(it.nutrients)) {
-      per100[k] = Math.round(((v * 100) / it.estimated_grams) * 10) / 10;
+      per100[k] = Math.round(((v * 100) / grams) * 10) / 10;
     }
   }
-  per100 = per100 ?? {};
   // Per-piece nutrients are ALWAYS density × per-piece grams — never the model's
   // `nutrients` field verbatim. The model intermittently puts the WHOLE GROUP's
   // totals there while also setting count>1, so logging (nutrients × count) comes
@@ -69,6 +73,7 @@ export function toEdit(it: ApiItem): EditItem {
     name: it.name_th || it.name_en || "Food",
     count: Math.max(1, Math.round(it.count || 1)),
     grams,
+    estimate: grams,
     per100,
     nutrients,
     gramsLow: it.grams_low,
@@ -76,6 +81,31 @@ export function toEdit(it: ApiItem): EditItem {
     household: it.household_unit,
     confidence: it.confidence,
   };
+}
+
+/**
+ * Slider bounds anchored on the AI's portion estimate. When the model gives a
+ * low–high range, the slider spans just past both ends with the estimate in the
+ * middle; otherwise it falls back to a band around the estimate. The window is
+ * widened if needed so a value the user typed by hand still lands on the track.
+ */
+function sliderBounds(it: EditItem): { min: number; max: number; step: number } {
+  const est = it.estimate > 0 ? it.estimate : 100;
+  let min: number;
+  let max: number;
+  if (it.gramsLow != null && it.gramsHigh != null && it.gramsHigh > it.gramsLow) {
+    const span = it.gramsHigh - it.gramsLow;
+    min = Math.max(1, Math.round(it.gramsLow - span * 0.5));
+    max = Math.round(it.gramsHigh + span * 0.5);
+  } else {
+    min = Math.max(1, Math.round(est * 0.4));
+    max = Math.round(est * 2);
+  }
+  min = Math.min(min, Math.floor(it.grams));
+  max = Math.max(max, Math.ceil(it.grams));
+  const range = max - min;
+  const step = range > 400 ? 25 : range > 150 ? 10 : range > 60 ? 5 : 1;
+  return { min, max, step };
 }
 
 /** Shared editable review + log form for AI-estimated meals (photo or text). */
@@ -194,29 +224,66 @@ export function MealReview({
                     </Button>
                   </div>
                 </div>
-                <div className="w-24 space-y-1">
+                <div className="w-28 space-y-1">
                   <Label htmlFor={`g-${idx}`} className="text-xs">
-                    Grams each
+                    Weight{it.count > 1 ? " · each" : ""}
                   </Label>
-                  <Input
-                    id={`g-${idx}`}
-                    type="number"
-                    step="any"
-                    inputMode="decimal"
-                    value={it.grams}
-                    onChange={(e) => setGrams(idx, e.target.value)}
-                    className="h-10"
-                  />
+                  <div className="relative">
+                    <Input
+                      id={`g-${idx}`}
+                      type="number"
+                      step="any"
+                      inputMode="decimal"
+                      value={it.grams}
+                      onChange={(e) => setGrams(idx, e.target.value)}
+                      className="h-10 pr-7 text-right font-mono tabular-nums"
+                    />
+                    <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted">
+                      g
+                    </span>
+                  </div>
                 </div>
               </div>
-              {(it.household || (it.gramsLow != null && it.gramsHigh != null)) && (
-                <p className="text-xs text-muted">
-                  {it.household ? `${it.household} · ` : ""}
-                  {it.gramsLow != null && it.gramsHigh != null
-                    ? `range ${it.gramsLow}–${it.gramsHigh} g each`
-                    : ""}
-                </p>
-              )}
+
+              {/* Weight scale — drag to rescale every nutrient by the per-100g
+                  density. Anchored on the AI's estimated portion range. */}
+              {(() => {
+                const { min, max, step } = sliderBounds(it);
+                const sliderVal = Math.min(max, Math.max(min, it.grams));
+                const drifted = Math.round(it.grams) !== Math.round(it.estimate);
+                return (
+                  <div className="space-y-1.5">
+                    <input
+                      type="range"
+                      min={min}
+                      max={max}
+                      step={step}
+                      value={sliderVal}
+                      onChange={(e) => setGrams(idx, e.target.value)}
+                      aria-label={`Weight in grams${it.count > 1 ? " each" : ""}`}
+                      className="h-2 w-full cursor-pointer appearance-none rounded-full bg-line accent-leaf"
+                    />
+                    <div className="flex items-center justify-between text-[11px] text-muted">
+                      <span className="tabular-nums">{min} g</span>
+                      {drifted ? (
+                        <button
+                          type="button"
+                          onClick={() => setGrams(idx, String(it.estimate))}
+                          className="inline-flex items-center gap-1 text-leaf transition-colors hover:text-ink"
+                        >
+                          <RotateCcw className="h-3 w-3" />
+                          AI ~{Math.round(it.estimate)} g
+                        </button>
+                      ) : (
+                        <span className="tabular-nums">
+                          {it.household ? `${it.household} · ` : ""}AI ~{Math.round(it.estimate)} g
+                        </span>
+                      )}
+                      <span className="tabular-nums">{max} g</span>
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
