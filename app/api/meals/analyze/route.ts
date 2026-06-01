@@ -6,7 +6,7 @@ import {
   analyzeMealPrompt,
   describeMealPrompt,
 } from "@/lib/prompts/analyze-meal";
-import { mealResultSchema, cleanNutrients } from "@/lib/nutrition/capture-schema";
+import { mealResultSchema, cleanNutrients, reconcileEnergy } from "@/lib/nutrition/capture-schema";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -56,8 +56,8 @@ export async function POST(req: Request) {
       grams_low: it.grams_low ?? null,
       grams_high: it.grams_high ?? null,
       household_unit: it.household_unit ?? null,
-      nutrients: cleanNutrients(it.nutrients ?? {}),
-      per_100g: cleanNutrients(it.per_100g ?? {}),
+      nutrients: reconcileEnergy(cleanNutrients(it.nutrients ?? {})),
+      per_100g: reconcileEnergy(cleanNutrients(it.per_100g ?? {})),
       confidence: it.confidence ?? 0.5,
       assumptions: it.assumptions ?? [],
     }));

@@ -59,6 +59,23 @@ export function atwaterKcal(n: Record<string, number>): number | null {
   return 4 * (n.protein ?? 0) + 4 * (n.carbs ?? 0) + 9 * (n.fat ?? 0);
 }
 
+/**
+ * Keep stated energy honest against the macros. Vision models sometimes report a
+ * kcal higher than 4·P+4·C+9·F supports — inflating calories. When all three
+ * macros are present we only ever pull an over-stated energy DOWN to the Atwater
+ * value (never push it up — stay conservative), and fill energy in when missing.
+ * Small gaps (fibre, sugar alcohols, rounding) within 15% are left untouched.
+ */
+export function reconcileEnergy(n: Record<string, number>): Record<string, number> {
+  const hasAllMacros = n.protein != null && n.carbs != null && n.fat != null;
+  if (!hasAllMacros) return n;
+  const atwater = atwaterKcal(n);
+  if (atwater == null || atwater <= 0) return n;
+  if (n.energy_kcal == null) return { ...n, energy_kcal: Math.round(atwater) };
+  if (n.energy_kcal > atwater * 1.15) return { ...n, energy_kcal: Math.round(atwater) };
+  return n;
+}
+
 // ---- AI meal-photo analysis ----
 
 const mealNutrients = z
