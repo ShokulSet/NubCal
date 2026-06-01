@@ -11,7 +11,6 @@ const ZONE_HEX: Record<ProgressZone, string> = {
   low: "#bf3b2b",
   moderate: "#b8860b",
   good: "#1f6b43",
-  over: "#7d57a6",
 };
 
 interface RpcItem {

@@ -7,7 +7,6 @@ const ZONE_BAR: Record<ProgressZone, string> = {
   low: "bg-low",
   moderate: "bg-mod",
   good: "bg-good",
-  over: "bg-over",
 };
 
 interface Day {

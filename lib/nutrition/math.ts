@@ -61,25 +61,25 @@ export function computeProgress(
 }
 
 /**
- * Colour band for a progress value:
- *   red (low) → yellow (moderate) → green (good) → purple (too much, 120%+).
- * Direction-aware: for "at_most" limits, low is good and over the cap is the
- * problem, so the scale flips.
+ * Colour band for a nutrient (NOT calories — those use calorieZone):
+ *   red (low) → amber (moderate) → green (good).
+ * Overshooting a macro target isn't a concern, so there's no "too much" band —
+ * anything at/above the target reads green. For "at_most" limits the scale
+ * flips: comfortably under is good, and exceeding the cap is flagged red.
  */
 export function progressZone(progress: Progress): ProgressZone {
   const { ratio, target, direction } = progress;
   if (ratio == null || target == null) return "none";
 
   if (direction === "at_most") {
-    if (ratio > 1) return "over"; // over the limit — too much
+    if (ratio > 1) return "low"; // over the cap — the problem
     if (ratio >= 0.85) return "moderate"; // nearing the cap
     return "good"; // comfortably under
   }
 
-  // at_least / around — filling toward the target
-  if (ratio >= 1.2) return "over"; // too much
-  if (ratio >= 0.85) return "good"; // at / near target
-  if (ratio >= 0.5) return "moderate"; // moderate
+  // at_least / around — filling toward the target; over the goal is still good.
+  if (ratio >= 0.85) return "good"; // at / near / above target
+  if (ratio >= 0.5) return "moderate";
   return "low"; // really low
 }
 
@@ -128,11 +128,12 @@ export function calorieZone(total: number, target: number | null): ProgressZone 
   }
 }
 
-export const CALORIE_STATUS: Record<CalorieStatus, { label: string; emoji: string }> = {
-  none: { label: "", emoji: "" },
-  on_track: { label: "On Track", emoji: "✅" },
-  slight_over: { label: "Slight Overage", emoji: "⚠️" },
-  too_much: { label: "Too Much", emoji: "❌" },
-  slight_under: { label: "Slight Deficit", emoji: "⚠️" },
-  too_low: { label: "Too Low", emoji: "❌" },
+/** Short status labels — rendered small-caps in the UI, so casing is cosmetic. */
+export const CALORIE_STATUS: Record<CalorieStatus, string> = {
+  none: "",
+  on_track: "On track",
+  slight_over: "Slight overage",
+  too_much: "Too much",
+  slight_under: "Slight deficit",
+  too_low: "Too low",
 };

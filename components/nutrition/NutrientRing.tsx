@@ -8,7 +8,6 @@ const ZONE_STROKE: Record<ProgressZone, string> = {
   low: "stroke-low",
   moderate: "stroke-mod",
   good: "stroke-good",
-  over: "stroke-over",
 };
 
 export function NutrientRing({

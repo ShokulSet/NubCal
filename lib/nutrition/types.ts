@@ -5,8 +5,8 @@ export type TargetDirection = "at_least" | "at_most" | "around";
 
 export type ProgressStatus = "none" | "under" | "on_track" | "met" | "over";
 
-/** Colour-coded band: red → yellow → green → purple. */
-export type ProgressZone = "none" | "low" | "moderate" | "good" | "over";
+/** Colour-coded band: red → amber → green. Overshooting a goal is not flagged. */
+export type ProgressZone = "none" | "low" | "moderate" | "good";
 
 export interface Progress {
   total: number;

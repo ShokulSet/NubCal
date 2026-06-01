@@ -19,7 +19,6 @@ const SURFACE = DARK ? "#1e1a13" : "#fffdf8";
 const INK = DARK ? "#efe6d5" : "#221d15";
 const MUTED = DARK ? "#9b9180" : "#8c8472";
 const CHILI = "#c0410c";
-const OVER = "#7d57a6";
 
 const inkColor = new Color(INK);
 const mutedColor = new Color(MUTED);
@@ -146,7 +145,7 @@ try {
     } else if (delta != null) {
       main = String(Math.abs(delta));
       sub = "over";
-      mainColor = new Color(cal.zone === "over" ? OVER : CHILI);
+      mainColor = new Color(CHILI);
     }
     rings.push({ fraction: cal.ratio, color: cal.color, main, sub, mainColor, label: "Calories" });
   }

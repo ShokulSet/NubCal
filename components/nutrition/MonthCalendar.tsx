@@ -9,7 +9,6 @@ const ZONE_BG: Record<ProgressZone, string> = {
   low: "bg-low/85 text-cream",
   moderate: "bg-mod/85 text-cream",
   good: "bg-good/85 text-cream",
-  over: "bg-over/85 text-cream",
 };
 
 const WEEKDAYS_MON = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];

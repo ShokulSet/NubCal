@@ -4,6 +4,7 @@ import {
   sumNutrientMaps,
   dailyTotals,
   computeProgress,
+  progressZone,
   ringFraction,
   calorieStatus,
   calorieZone,
@@ -61,6 +62,26 @@ describe("computeProgress", () => {
     expect(computeProgress(80, 100, "around").status).toBe("under");
     expect(computeProgress(100, 100, "around").status).toBe("on_track");
     expect(computeProgress(120, 100, "around").status).toBe("over");
+  });
+});
+
+describe("progressZone", () => {
+  it("never flags overshooting a goal — over target reads good, not purple", () => {
+    expect(progressZone(computeProgress(150, 100, "around"))).toBe("good");
+    expect(progressZone(computeProgress(300, 100, "at_least"))).toBe("good");
+    expect(progressZone(computeProgress(100, 100, "around"))).toBe("good");
+  });
+  it("still grades shortfalls toward a goal", () => {
+    expect(progressZone(computeProgress(70, 100, "around"))).toBe("moderate");
+    expect(progressZone(computeProgress(40, 100, "around"))).toBe("low");
+  });
+  it("at_most cap: under is good, over the limit is red", () => {
+    expect(progressZone(computeProgress(50, 100, "at_most"))).toBe("good");
+    expect(progressZone(computeProgress(90, 100, "at_most"))).toBe("moderate");
+    expect(progressZone(computeProgress(120, 100, "at_most"))).toBe("low");
+  });
+  it("returns none without a target", () => {
+    expect(progressZone(computeProgress(50, null, "around"))).toBe("none");
   });
 });
 

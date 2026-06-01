@@ -17,7 +17,6 @@ const ZONE_TEXT: Record<ProgressZone, string> = {
   low: "text-low",
   moderate: "text-mod",
   good: "text-good",
-  over: "text-over",
 };
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

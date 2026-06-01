@@ -3,23 +3,29 @@ import { roundTo } from "@/lib/nutrition/format";
 import { ringFraction, calorieStatus, calorieZone, CALORIE_STATUS } from "@/lib/nutrition/math";
 import type { Progress, ProgressZone } from "@/lib/nutrition/types";
 
-const ZONE_TEXT: Record<ProgressZone, string> = {
-  none: "text-muted",
-  low: "text-low",
-  moderate: "text-mod",
-  good: "text-good",
-  over: "text-over",
-};
-
 const ZONE_STROKE: Record<ProgressZone, string> = {
   none: "stroke-ink/15",
   low: "stroke-low",
   moderate: "stroke-mod",
   good: "stroke-good",
-  over: "stroke-over",
 };
 
-/** Full-width hero for the calorie target: big ring + remaining/over. */
+// Soft tinted status pill — full literal class names so Tailwind emits them.
+const ZONE_CHIP: Record<ProgressZone, string> = {
+  none: "bg-ink/[0.05] text-muted",
+  low: "bg-low/15 text-low",
+  moderate: "bg-mod/15 text-mod",
+  good: "bg-good/15 text-good",
+};
+
+const ZONE_DOT: Record<ProgressZone, string> = {
+  none: "bg-muted",
+  low: "bg-low",
+  moderate: "bg-mod",
+  good: "bg-good",
+};
+
+/** Full-width hero for the calorie target: big ring + remaining/over + status. */
 export function CalorieHero({ progress }: { progress: Progress }) {
   const size = 118;
   const stroke = 9;
@@ -32,7 +38,7 @@ export function CalorieHero({ progress }: { progress: Progress }) {
   const delta = progress.target != null ? Math.round(progress.target - progress.total) : null;
   const status = calorieStatus(progress.total, progress.target);
   const zone = calorieZone(progress.total, progress.target);
-  const statusInfo = CALORIE_STATUS[status];
+  const label = CALORIE_STATUS[status];
 
   return (
     <div className="flex items-center gap-5">
@@ -74,29 +80,35 @@ export function CalorieHero({ progress }: { progress: Progress }) {
       <div className="min-w-0 flex-1">
         <p className="eyebrow">Calories</p>
         {delta == null ? (
-          <p className="mt-1 text-2xl font-semibold text-ink">
+          <p className="mt-1.5 tnum font-mono text-[1.75rem] font-medium leading-none text-ink">
             {total}
-            <span className="ml-1 text-sm font-normal text-muted">kcal</span>
-          </p>
-        ) : delta >= 0 ? (
-          <p className="mt-1 text-2xl font-semibold text-ink">
-            {delta}
-            <span className="ml-1 text-sm font-normal text-muted">kcal left</span>
+            <span className="ml-1.5 font-sans text-sm font-normal text-muted">kcal</span>
           </p>
         ) : (
-          <p className="mt-1 text-2xl font-semibold text-chili">
+          <p
+            className={cn(
+              "mt-1.5 tnum font-mono text-[1.75rem] font-medium leading-none",
+              delta >= 0 ? "text-ink" : "text-chili",
+            )}
+          >
             {Math.abs(delta)}
-            <span className="ml-1 text-sm font-normal">kcal over</span>
+            <span className="ml-1.5 font-sans text-sm font-normal text-muted">
+              kcal {delta >= 0 ? "left" : "over"}
+            </span>
           </p>
         )}
-        {statusInfo.label && (
-          <p className={cn("mt-1 text-sm font-medium", ZONE_TEXT[zone])}>
-            {statusInfo.label} {statusInfo.emoji}
-          </p>
+        {label && (
+          <span
+            className={cn(
+              "mt-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1",
+              "text-[0.62rem] font-semibold uppercase tracking-[0.16em]",
+              ZONE_CHIP[zone],
+            )}
+          >
+            <span className={cn("h-1.5 w-1.5 rounded-full", ZONE_DOT[zone])} />
+            {label}
+          </span>
         )}
-        <p className="mt-1 tnum font-mono text-xs text-muted">
-          {total} / {target ?? "—"} kcal
-        </p>
       </div>
     </div>
   );
