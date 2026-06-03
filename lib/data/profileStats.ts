@@ -24,7 +24,10 @@ export interface ProfileStats {
   today: string;
   streak: number;
   daysLoggedThisMonth: number;
+  daysOnTrackThisMonth: number;
   calorieAvg: Progress;
+  prevMonthAvg: number | null;
+  prevMonthLabel: string;
   macros: { key: string; label: string; unit: string; progress: Progress }[];
   calendar: CalendarDay[];
   leadingBlanks: number;
@@ -51,9 +54,17 @@ export async function getProfileStats(supabase: Client, userId: string): Promise
   const monthPrefix = `${y}-${pad(m)}`;
   const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
 
-  // One energy query covers the calendar month AND a ~45-day streak/avg window.
+  // Previous calendar month (Jan → prior Dec rollover handled by the Date math).
+  const py = m === 1 ? y - 1 : y;
+  const pm = m === 1 ? 12 : m - 1;
+  const prevMonthStart = `${py}-${pad(pm)}-01`;
+  const prevMonthPrefix = `${py}-${pad(pm)}`;
+
+  // One energy query covers the calendar month, a ~45-day streak/avg window, and
+  // the full previous month (for the month-over-month trend).
   const back45 = addDaysIso(today, -44);
-  const rangeFrom = back45 < monthStart ? back45 : monthStart;
+  const earliest = back45 < prevMonthStart ? back45 : prevMonthStart;
+  const rangeFrom = earliest < monthStart ? earliest : monthStart;
 
   const [{ data: nutrients }, { data: targets }, { data: energyRows }, { data: macroRows }] =
     await Promise.all([
@@ -125,6 +136,16 @@ export async function getProfileStats(supabase: Client, userId: string): Promise
   const avgKcal = roundTo(mean(loggedMonthIso.map((iso) => kcalByDate.get(iso) ?? 0)), 0);
   const calorieAvg = computeProgress(avgKcal, calorieTarget, calorieDir);
 
+  // Previous month's average over its logged days — null when nothing was logged.
+  const prevMonthKcal = Array.from(kcalByDate.entries())
+    .filter(([iso, kcal]) => iso.startsWith(prevMonthPrefix) && kcal > 0)
+    .map(([, kcal]) => kcal);
+  const prevMonthAvg = prevMonthKcal.length ? roundTo(mean(prevMonthKcal), 0) : null;
+  const prevMonthLabel = new Date(`${prevMonthStart}T00:00:00Z`).toLocaleDateString("en-US", {
+    month: "short",
+    timeZone: "UTC",
+  });
+
   const macros = MACRO_KEYS.map((key) => {
     const def = defByKey.get(key);
     if (!def) return null;
@@ -155,6 +176,9 @@ export async function getProfileStats(supabase: Client, userId: string): Promise
     });
   }
 
+  // Days whose calorie total landed in the on-track band (green zone) this month.
+  const daysOnTrackThisMonth = calendar.filter((d) => d.logged && d.zone === "good").length;
+
   // Mon–Sun grid: how many blank cells before day 1.
   const leadingBlanks = (new Date(`${monthStart}T00:00:00Z`).getUTCDay() + 6) % 7;
 
@@ -169,7 +193,10 @@ export async function getProfileStats(supabase: Client, userId: string): Promise
     today,
     streak,
     daysLoggedThisMonth,
+    daysOnTrackThisMonth,
     calorieAvg,
+    prevMonthAvg,
+    prevMonthLabel,
     macros,
     calendar,
     leadingBlanks,

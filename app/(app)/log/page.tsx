@@ -2,15 +2,22 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getAuthUserId } from "@/lib/supabase/auth";
 import { APP_TZ } from "@/lib/config";
-import { todayInTimezone } from "@/lib/nutrition/date";
+import { todayInTimezone, isIsoDate } from "@/lib/nutrition/date";
 import { LogClient } from "./LogClient";
 
-export default async function LogPage() {
+export default async function LogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
   const supabase = await createClient();
   const userId = await getAuthUserId(supabase);
   if (!userId) redirect("/login");
 
-  const eatenOn = todayInTimezone(APP_TZ);
+  const today = todayInTimezone(APP_TZ);
+  // Honor ?date=YYYY-MM-DD for editing a past day; never let it run ahead of today.
+  const { date } = await searchParams;
+  const eatenOn = date && isIsoDate(date) && date <= today ? date : today;
 
   const [{ data: foods }, { data: meals }] = await Promise.all([
     supabase
@@ -38,11 +45,7 @@ export default async function LogPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <p className="eyebrow">Log · {eatenOn}</p>
-        <h1 className="text-[2.2rem] leading-none">Add to today</h1>
-      </header>
-      <LogClient foods={foods ?? []} items={items} />
+      <LogClient foods={foods ?? []} items={items} eatenOn={eatenOn} today={today} />
     </div>
   );
 }

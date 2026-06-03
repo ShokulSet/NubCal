@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import type { ProgressZone } from "@/lib/nutrition/types";
 import type { CalendarDay } from "@/lib/data/profileStats";
@@ -26,11 +27,14 @@ export function MonthCalendar({
   weekdayStart = "mon",
   leadingBlanks,
   days,
+  today,
 }: {
   monthLabel: string;
   weekdayStart?: "mon" | "sun";
   leadingBlanks: number;
   days: CalendarDay[];
+  /** Today's ISO date — days on or before it link to the log for editing. */
+  today?: string;
 }) {
   const weekdays = weekdayStart === "mon" ? WEEKDAYS_MON : WEEKDAYS_SUN;
   const blanks = weekdayStart === "mon" ? leadingBlanks : (leadingBlanks + 1) % 7;
@@ -59,19 +63,28 @@ export function MonthCalendar({
         {Array.from({ length: blanks }).map((_, i) => (
           <div key={`blank-${i}`} aria-hidden />
         ))}
-        {days.map((d) => (
-          <div
-            key={d.iso}
-            title={`${d.iso}: ${Math.round(d.kcal)} kcal`}
-            className={cn(
-              "flex aspect-square items-center justify-center rounded-xl font-mono text-[11px] tabular-nums",
-              d.logged ? ZONE_BG[d.zone] : "bg-ink/[0.04] text-muted",
-              d.isToday && "ring-2 ring-inset ring-ink/40",
-            )}
-          >
-            {d.day}
-          </div>
-        ))}
+        {days.map((d) => {
+          const cellClass = cn(
+            "flex aspect-square items-center justify-center rounded-xl font-mono text-[11px] tabular-nums",
+            d.logged ? ZONE_BG[d.zone] : "bg-ink/[0.04] text-muted",
+            d.isToday && "ring-2 ring-inset ring-ink/40",
+          );
+          const editable = !today || d.iso <= today;
+          return editable ? (
+            <Link
+              key={d.iso}
+              href={`/log?date=${d.iso}`}
+              title={`Edit ${d.iso} · ${Math.round(d.kcal)} kcal`}
+              className={cn(cellClass, "transition-transform hover:scale-105 active:scale-95")}
+            >
+              {d.day}
+            </Link>
+          ) : (
+            <div key={d.iso} title={`${d.iso}: ${Math.round(d.kcal)} kcal`} className={cellClass}>
+              {d.day}
+            </div>
+          );
+        })}
       </div>
     </section>
   );

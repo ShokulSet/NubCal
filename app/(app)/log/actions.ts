@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { APP_TZ } from "@/lib/config";
-import { todayInTimezone } from "@/lib/nutrition/date";
+import { todayInTimezone, isIsoDate } from "@/lib/nutrition/date";
 
-/** Log a food into today's meal of the given type (find-or-create the meal). */
+/** Log a food into a day's meal of the given type (find-or-create the meal).
+ * Defaults to today; honors a valid, non-future `eaten_on` for editing past days. */
 export async function logFood(formData: FormData) {
   const foodId = String(formData.get("food_id") ?? "");
   const mealType = String(formData.get("meal_type") ?? "other");
@@ -25,7 +26,9 @@ export async function logFood(formData: FormData) {
     .single();
   if (!food) return;
 
-  const eatenOn = todayInTimezone(APP_TZ);
+  const today = todayInTimezone(APP_TZ);
+  const requested = String(formData.get("eaten_on") ?? "");
+  const eatenOn = isIsoDate(requested) && requested <= today ? requested : today;
 
   const { data: existingMeal } = await supabase
     .from("meals")
@@ -59,6 +62,7 @@ export async function logFood(formData: FormData) {
 
   revalidatePath("/log");
   revalidatePath("/today");
+  revalidatePath("/settings");
 }
 
 /** Edit a logged item's quantity and/or meal type (moving it between meals). */
@@ -138,6 +142,7 @@ export async function updateMealItem(formData: FormData) {
 
   revalidatePath("/log");
   revalidatePath("/today");
+  revalidatePath("/settings");
 }
 
 export async function removeMealItem(formData: FormData) {
@@ -147,4 +152,5 @@ export async function removeMealItem(formData: FormData) {
   await supabase.from("meal_items").delete().eq("id", id);
   revalidatePath("/log");
   revalidatePath("/today");
+  revalidatePath("/settings");
 }

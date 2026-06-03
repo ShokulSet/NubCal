@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useOptimistic, useState } from "react";
-import { ChevronDown, Minus, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Minus, Plus, Trash2 } from "lucide-react";
 import { logFood, removeMealItem, updateMealItem } from "./actions";
 import { itemContribution } from "@/lib/nutrition/math";
+import { addDaysIso } from "@/lib/nutrition/date";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +48,17 @@ function MacroChips({ item }: { item: Item }) {
   );
 }
 
-export function LogClient({ foods, items }: { foods: Food[]; items: Item[] }) {
+export function LogClient({
+  foods,
+  items,
+  eatenOn,
+  today,
+}: {
+  foods: Food[];
+  items: Item[];
+  eatenOn: string;
+  today: string;
+}) {
   const [optimisticItems, addOptimistic] = useOptimistic(
     items,
     (state: Item[], next: Item) => [...state, next],
@@ -54,6 +66,15 @@ export function LogClient({ foods, items }: { foods: Food[]; items: Item[] }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editQty, setEditQty] = useState(1);
   const [editMeal, setEditMeal] = useState("other");
+
+  const isToday = eatenOn === today;
+  const prevIso = addDaysIso(eatenOn, -1);
+  const nextIso = addDaysIso(eatenOn, 1);
+  const dateLabel = new Date(`${eatenOn}T00:00:00`).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "long",
+    day: "numeric",
+  });
 
   async function handleLog(formData: FormData) {
     const food = foods.find((f) => f.id === String(formData.get("food_id") ?? ""));
@@ -84,6 +105,36 @@ export function LogClient({ foods, items }: { foods: Food[]; items: Item[] }) {
 
   return (
     <>
+      <header className="space-y-3">
+        <p className="eyebrow">Log</p>
+        <div className="flex items-center justify-between gap-3">
+          <Link
+            href={`/log?date=${prevIso}`}
+            aria-label="Previous day"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line text-muted hover:bg-black/[.03] dark:hover:bg-white/[.04]"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Link>
+          <h1 className="text-center text-[1.7rem] leading-none">
+            {isToday ? "Today" : dateLabel}
+          </h1>
+          {isToday ? (
+            <span
+              aria-hidden
+              className="h-10 w-10 shrink-0 rounded-xl border border-transparent"
+            />
+          ) : (
+            <Link
+              href={`/log?date=${nextIso}`}
+              aria-label="Next day"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line text-muted hover:bg-black/[.03] dark:hover:bg-white/[.04]"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Link>
+          )}
+        </div>
+      </header>
+
       {foods.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-line p-6 text-center text-sm text-muted">
           Add a food first on the{" "}
@@ -94,6 +145,7 @@ export function LogClient({ foods, items }: { foods: Food[]; items: Item[] }) {
         </div>
       ) : (
         <form action={handleLog} className="space-y-3 rounded-2xl border border-line bg-surface/40 p-4">
+          <input type="hidden" name="eaten_on" value={eatenOn} />
           <select name="food_id" required className={selectClass}>
             {foods.map((f) => (
               <option key={f.id} value={f.id}>
@@ -126,7 +178,9 @@ export function LogClient({ foods, items }: { foods: Food[]; items: Item[] }) {
       )}
 
       <section className="space-y-2">
-        <h2 className="text-sm font-semibold text-muted">Today&apos;s items</h2>
+        <h2 className="text-sm font-semibold text-muted">
+          {isToday ? "Today's items" : `Items for ${dateLabel}`}
+        </h2>
         {optimisticItems.length === 0 ? (
           <p className="text-sm text-muted">Nothing logged yet.</p>
         ) : (

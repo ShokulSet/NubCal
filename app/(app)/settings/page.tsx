@@ -3,11 +3,12 @@ import { redirect } from "next/navigation";
 import { ChevronRight, UserRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getProfileStats } from "@/lib/data/profileStats";
-import { calorieZone } from "@/lib/nutrition/math";
+import { calorieStatus, calorieZone, CALORIE_STATUS } from "@/lib/nutrition/math";
 import { signOut } from "@/app/(auth)/actions";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { WidgetField } from "@/components/settings/WidgetField";
 import { NutrientRing } from "@/components/nutrition/NutrientRing";
+import { CalorieStatusPill } from "@/components/nutrition/CalorieStatusPill";
 import { MonthCalendar } from "@/components/nutrition/MonthCalendar";
 import { cn } from "@/lib/utils";
 import type { ProgressZone } from "@/lib/nutrition/types";
@@ -36,6 +37,14 @@ export default async function ProfilePage() {
     : null;
 
   const avgKcal = Math.round(stats.calorieAvg.total);
+  const target = stats.calorieAvg.target;
+  const avgZone = calorieZone(avgKcal, target);
+  const avgLabel = CALORIE_STATUS[calorieStatus(avgKcal, target)];
+
+  // Sign-aware kcal/day deltas for the analysis facts.
+  const surplus = target != null ? avgKcal - Math.round(target) : null;
+  const fmtDelta = (n: number) => `${n > 0 ? "+" : n < 0 ? "−" : ""}${Math.abs(n)}`;
+  const trendDelta = stats.prevMonthAvg != null ? avgKcal - stats.prevMonthAvg : null;
 
   return (
     <div className="space-y-8">
@@ -51,7 +60,7 @@ export default async function ProfilePage() {
       </header>
 
       <section className="rounded-3xl border border-line bg-surface/50 p-5">
-        <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="grid grid-cols-2 gap-4 text-center">
           <div>
             <p className="eyebrow">Streak</p>
             <p className="tnum mt-1.5 font-mono text-[1.8rem] leading-none text-ink">
@@ -66,22 +75,45 @@ export default async function ProfilePage() {
             </p>
             <p className="mt-1 text-xs text-muted">days this month</p>
           </div>
-          <div>
+        </div>
+
+        <div className="mt-6 border-t border-line pt-6">
+          <div className="flex items-baseline justify-between gap-3">
             <p className="eyebrow">Avg / day</p>
-            <p
-              className={cn(
-                "tnum mt-1.5 font-mono text-[1.8rem] leading-none",
-                ZONE_TEXT[calorieZone(stats.calorieAvg.total, stats.calorieAvg.target)],
-              )}
-            >
-              {avgKcal}
-            </p>
-            <p className="mt-1 text-xs text-muted">
-              {stats.calorieAvg.target != null
-                ? `/ ${Math.round(stats.calorieAvg.target)} kcal`
-                : "kcal"}
-            </p>
+            <CalorieStatusPill zone={avgZone} label={avgLabel} />
           </div>
+          <p className="mt-1.5 flex items-baseline gap-2">
+            <span className={cn("tnum font-mono text-[2rem] leading-none", ZONE_TEXT[avgZone])}>
+              {avgKcal}
+            </span>
+            <span className="text-sm text-muted">
+              {target != null ? `/ ${Math.round(target)} kcal` : "kcal"}
+            </span>
+          </p>
+
+          {(surplus != null || trendDelta != null) && (
+            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">
+              {surplus != null && (
+                <span>
+                  <span className="tnum font-mono text-ink">{fmtDelta(surplus)}</span> / day{" "}
+                  {surplus > 0 ? "over goal" : surplus < 0 ? "under goal" : "on goal"}
+                </span>
+              )}
+              {target != null && (
+                <span>
+                  <span className="tnum font-mono text-ink">{stats.daysOnTrackThisMonth}</span> of{" "}
+                  <span className="tnum font-mono text-ink">{stats.daysLoggedThisMonth}</span> days
+                  on track
+                </span>
+              )}
+              {trendDelta != null && (
+                <span>
+                  <span className="tnum font-mono text-ink">{fmtDelta(trendDelta)}</span> / day vs{" "}
+                  {stats.prevMonthLabel}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {stats.macros.length > 0 && (
@@ -99,6 +131,7 @@ export default async function ProfilePage() {
         monthLabel={stats.monthLabel}
         leadingBlanks={stats.leadingBlanks}
         days={stats.calendar}
+        today={stats.today}
         weekdayStart="mon"
       />
 
