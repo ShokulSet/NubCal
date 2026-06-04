@@ -8,9 +8,6 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack", "other"];
-const selectClass =
-  "h-11 w-full rounded-xl border border-line bg-transparent px-3";
 
 /** Raw item shape returned by /api/meals/analyze (photo or text). */
 export interface ApiItem {
@@ -323,14 +320,6 @@ export function MealReview({
           );
         })}
       </div>
-
-      <select name="meal_type" defaultValue="other" className={selectClass}>
-        {MEAL_TYPES.map((t) => (
-          <option key={t} value={t}>
-            {t}
-          </option>
-        ))}
-      </select>
 
       <div className="flex gap-2">
         <Button type="button" variant="outline" className="flex-1" onClick={onBack}>

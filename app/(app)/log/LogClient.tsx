@@ -10,10 +10,7 @@ import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 
-const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack", "other"];
 const selectClass = "h-11 w-full rounded-xl border border-line bg-surface/60 px-3";
-const editSelectClass =
-  "h-10 rounded-xl border border-line bg-surface/60 px-3 text-sm capitalize";
 
 const r1 = (x: number) => Math.round(x * 10) / 10;
 
@@ -24,7 +21,6 @@ interface Item {
   quantity: number;
   serving_size: number;
   serving_unit: string;
-  meal_type: string;
   nutrients_snapshot: Record<string, number>;
 }
 interface Food {
@@ -65,7 +61,6 @@ export function LogClient({
   );
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editQty, setEditQty] = useState(1);
-  const [editMeal, setEditMeal] = useState("other");
 
   const isToday = eatenOn === today;
   const prevIso = addDaysIso(eatenOn, -1);
@@ -86,7 +81,6 @@ export function LogClient({
         quantity: Number(formData.get("quantity") ?? 1) || 1,
         serving_size: food.serving_size,
         serving_unit: food.serving_unit,
-        meal_type: String(formData.get("meal_type") ?? "other"),
         nutrients_snapshot: {},
       });
     }
@@ -100,7 +94,6 @@ export function LogClient({
     }
     setExpandedId(it.id);
     setEditQty(it.quantity);
-    setEditMeal(it.meal_type);
   }
 
   return (
@@ -153,24 +146,15 @@ export function LogClient({
               </option>
             ))}
           </select>
-          <div className="flex gap-3">
-            <Input
-              name="quantity"
-              type="number"
-              step="any"
-              inputMode="decimal"
-              defaultValue={1}
-              className="w-24"
-              aria-label="Servings"
-            />
-            <select name="meal_type" defaultValue="other" className={`${selectClass} flex-1`}>
-              {MEAL_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Input
+            name="quantity"
+            type="number"
+            step="any"
+            inputMode="decimal"
+            defaultValue={1}
+            className="w-full"
+            aria-label="Servings"
+          />
           <SubmitButton className="w-full" pendingLabel="Logging…">
             Log it
           </SubmitButton>
@@ -204,8 +188,7 @@ export function LogClient({
                     <div className="min-w-0">
                       <p className="truncate font-medium">{it.name}</p>
                       <p className="text-xs text-muted">
-                        {it.quantity} × {it.serving_size} {it.serving_unit} ·{" "}
-                        <span className="capitalize">{it.meal_type}</span>
+                        {it.quantity} × {it.serving_size} {it.serving_unit}
                       </p>
                       {!pending && <MacroChips item={it} />}
                     </div>
@@ -259,29 +242,12 @@ export function LogClient({
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-sm text-muted">Meal</span>
-                        <select
-                          value={editMeal}
-                          onChange={(e) => setEditMeal(e.target.value)}
-                          className={editSelectClass}
-                          aria-label="Meal type"
-                        >
-                          {MEAL_TYPES.map((t) => (
-                            <option key={t} value={t}>
-                              {t}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
                       <MacroChips item={{ ...it, quantity: editQty }} />
 
                       <div className="flex gap-2 pt-1">
                         <form action={updateMealItem} className="flex-1">
                           <input type="hidden" name="id" value={it.id} />
                           <input type="hidden" name="quantity" value={editQty} />
-                          <input type="hidden" name="meal_type" value={editMeal} />
                           <SubmitButton className="w-full" pendingLabel="Saving…">
                             Save
                           </SubmitButton>

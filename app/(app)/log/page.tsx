@@ -28,7 +28,7 @@ export default async function LogPage({
     supabase
       .from("meals")
       .select(
-        "id, meal_type, meal_items(id, name, quantity, serving_size, serving_unit, nutrients_snapshot)",
+        "id, meal_items(id, name, quantity, serving_size, serving_unit, nutrients_snapshot)",
       )
       .eq("user_id", userId)
       .eq("eaten_on", eatenOn),
@@ -38,7 +38,6 @@ export default async function LogPage({
     (m.meal_items ?? []).map((it) => ({
       ...it,
       meal_id: m.id,
-      meal_type: m.meal_type,
       nutrients_snapshot: (it.nutrients_snapshot ?? {}) as Record<string, number>,
     })),
   );

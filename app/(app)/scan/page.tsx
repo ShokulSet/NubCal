@@ -10,9 +10,6 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 
 const FORMATS = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128"];
-const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack", "other"];
-
-const selectClass = "h-11 w-full rounded-xl border border-line bg-surface/60 px-3";
 
 interface Product {
   barcode: string;
@@ -218,24 +215,15 @@ export default function ScanPage() {
                 nutrients: editNutrients,
               })}
             />
-            <div className="flex gap-3">
-              <Input
-                name="quantity"
-                type="number"
-                step="any"
-                inputMode="decimal"
-                defaultValue={1}
-                className="w-24"
-                aria-label="Servings"
-              />
-              <select name="meal_type" defaultValue="other" className={`${selectClass} flex-1`}>
-                {MEAL_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Input
+              name="quantity"
+              type="number"
+              step="any"
+              inputMode="decimal"
+              defaultValue={1}
+              className="w-full"
+              aria-label="Servings"
+            />
             <div className="flex gap-2">
               <Button type="button" variant="outline" className="flex-1" onClick={reset}>
                 Scan another

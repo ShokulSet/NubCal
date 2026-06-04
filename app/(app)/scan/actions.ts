@@ -23,7 +23,6 @@ interface ScanPayload {
 export async function logScannedProduct(formData: FormData) {
   const payloadRaw = String(formData.get("payload") ?? "");
   const quantity = Number(formData.get("quantity") ?? 1) || 1;
-  const mealType = String(formData.get("meal_type") ?? "other");
   if (!payloadRaw) return;
 
   let payload: ScanPayload;
@@ -112,14 +111,15 @@ export async function logScannedProduct(formData: FormData) {
     .select("id")
     .eq("user_id", user.id)
     .eq("eaten_on", eatenOn)
-    .eq("meal_type", mealType)
+    .order("created_at")
+    .limit(1)
     .maybeSingle();
 
   let mealId = meal?.id;
   if (!mealId) {
     const { data: created } = await supabase
       .from("meals")
-      .insert({ user_id: user.id, eaten_on: eatenOn, meal_type: mealType, status: "logged" })
+      .insert({ user_id: user.id, eaten_on: eatenOn, status: "logged" })
       .select("id")
       .single();
     mealId = created?.id;
@@ -153,7 +153,6 @@ interface MealPhotoItem {
 /** Log AI-estimated meal-photo items into today's meal (each item is inline, food_id null). */
 export async function logMealPhoto(formData: FormData) {
   const payloadRaw = String(formData.get("payload") ?? "");
-  const mealType = String(formData.get("meal_type") ?? "other");
   if (!payloadRaw) return;
 
   let items: MealPhotoItem[];
@@ -176,14 +175,15 @@ export async function logMealPhoto(formData: FormData) {
     .select("id")
     .eq("user_id", user.id)
     .eq("eaten_on", eatenOn)
-    .eq("meal_type", mealType)
+    .order("created_at")
+    .limit(1)
     .maybeSingle();
 
   let mealId = meal?.id;
   if (!mealId) {
     const { data: created } = await supabase
       .from("meals")
-      .insert({ user_id: user.id, eaten_on: eatenOn, meal_type: mealType, status: "logged" })
+      .insert({ user_id: user.id, eaten_on: eatenOn, status: "logged" })
       .select("id")
       .single();
     mealId = created?.id;

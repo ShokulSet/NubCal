@@ -10,9 +10,6 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack", "other"];
-const selectClass =
-  "h-11 w-full rounded-xl border border-line bg-transparent px-3";
 
 interface LabelData {
   name: string;
@@ -160,24 +157,15 @@ export function LabelOcr({ barcode }: { barcode?: string }) {
           ))}
         </div>
 
-        <div className="flex gap-3">
-          <Input
-            name="quantity"
-            type="number"
-            step="any"
-            inputMode="decimal"
-            defaultValue={1}
-            className="w-24"
-            aria-label="Servings"
-          />
-          <select name="meal_type" defaultValue="other" className={`${selectClass} flex-1`}>
-            {MEAL_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Input
+          name="quantity"
+          type="number"
+          step="any"
+          inputMode="decimal"
+          defaultValue={1}
+          className="w-full"
+          aria-label="Servings"
+        />
 
         <div className="flex gap-2">
           <Button
