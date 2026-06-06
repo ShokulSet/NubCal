@@ -37,7 +37,10 @@ export function AddSpeedDial() {
         )}
       />
 
-      <div className="fixed bottom-24 right-5 z-50 flex flex-col items-end gap-3">
+      {/* Container is click-through so its transparent gaps never swallow taps
+          on content behind it (e.g. a log card's trash button). Only the FAB
+          and the open action links opt back into pointer events. */}
+      <div className="pointer-events-none fixed bottom-24 right-5 z-50 flex flex-col items-end gap-3">
         {ACTIONS.map(({ href, label, icon: Icon, dated }, i) => {
           // Nearest item (Log, last in array) animates first.
           const delay = open ? (ACTIONS.length - 1 - i) * 45 : 0;
@@ -51,7 +54,7 @@ export function AddSpeedDial() {
               className={cn(
                 "flex items-center gap-3 transition-all duration-200 ease-out",
                 open
-                  ? "translate-y-0 scale-100 opacity-100"
+                  ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
                   : "pointer-events-none translate-y-3 scale-90 opacity-0",
               )}
               style={{ transitionDelay: `${delay}ms` }}
@@ -71,7 +74,7 @@ export function AddSpeedDial() {
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Close add menu" : "Add to today"}
           aria-expanded={open}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-leaf text-paper shadow-[0_16px_32px_-12px_rgba(31,107,67,0.65)] transition-transform duration-200 active:scale-95"
+          className="pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-leaf text-paper shadow-[0_16px_32px_-12px_rgba(31,107,67,0.65)] transition-transform duration-200 active:scale-95"
         >
           <Plus
             className={cn("h-6 w-6 transition-transform duration-200", open && "rotate-45")}
