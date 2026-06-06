@@ -24,7 +24,7 @@ interface LabelData {
   warnings: string[];
 }
 
-export function LabelOcr({ barcode }: { barcode?: string }) {
+export function LabelOcr({ barcode, eatenOn }: { barcode?: string; eatenOn?: string }) {
   const [stage, setStage] = useState<"capture" | "processing" | "review">("capture");
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<LabelData | null>(null);
@@ -91,6 +91,7 @@ export function LabelOcr({ barcode }: { barcode?: string }) {
     return (
       <form action={logScannedProduct} className="space-y-4">
         <input type="hidden" name="payload" value={payload} />
+        <input type="hidden" name="eaten_on" value={eatenOn ?? ""} />
 
         {lowConfidence && (
           <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950/40">

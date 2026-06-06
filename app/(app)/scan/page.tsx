@@ -37,6 +37,8 @@ export default function ScanPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ApiResult | null>(null);
   const [editNutrients, setEditNutrients] = useState<Record<string, number>>({});
+  // Day to log into, carried via ?date= when arriving from a past day's log.
+  const [eatenOn, setEatenOn] = useState("");
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   async function resolve(rawBarcode: string) {
@@ -64,10 +66,13 @@ export default function ScanPage() {
   // An effect (not a lazy initializer) avoids a hydration mismatch — the server
   // has no window and renders the idle state.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("camera") === "1") {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("camera") === "1") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setMode("camera");
     }
+    const date = params.get("date");
+    if (date) setEatenOn(date);
   }, []);
 
   useEffect(() => {
@@ -204,6 +209,7 @@ export default function ScanPage() {
           </div>
 
           <form action={logScannedProduct} className="space-y-3">
+            <input type="hidden" name="eaten_on" value={eatenOn} />
             <input
               type="hidden"
               name="payload"
@@ -256,7 +262,11 @@ export default function ScanPage() {
             Food Facts or USDA. Common for Thai products — read the label with AI instead.
           </p>
           <div className="flex flex-col gap-2">
-            <a href={`/analyze?tab=label&barcode=${result.barcode}`}>
+            <a
+              href={`/analyze?tab=label&barcode=${result.barcode}${
+                eatenOn ? `&date=${eatenOn}` : ""
+              }`}
+            >
               <Button className="w-full">Read the label (AI)</Button>
             </a>
             <div className="flex justify-center gap-2">

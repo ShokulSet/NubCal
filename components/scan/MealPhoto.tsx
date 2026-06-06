@@ -12,7 +12,13 @@ type Stage = "idle" | "camera" | "processing" | "review";
 const uploadClass =
   "flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-line bg-surface/60 text-sm font-medium transition-colors hover:bg-surface";
 
-export function MealPhoto({ autoCamera = false }: { autoCamera?: boolean }) {
+export function MealPhoto({
+  autoCamera = false,
+  eatenOn,
+}: {
+  autoCamera?: boolean;
+  eatenOn?: string;
+}) {
   const [stage, setStage] = useState<Stage>(autoCamera ? "camera" : "idle");
   const [error, setError] = useState<string | null>(null);
   const [hint, setHint] = useState("");
@@ -127,6 +133,7 @@ export function MealPhoto({ autoCamera = false }: { autoCamera?: boolean }) {
         items={items}
         setItems={setItems}
         backLabel="Retake"
+        eatenOn={eatenOn}
         onBack={() => {
           setItems([]);
           setStage("idle");

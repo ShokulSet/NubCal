@@ -2,18 +2,26 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Apple, Plus, ScanBarcode, Sparkles } from "lucide-react";
+import { isIsoDate } from "@/lib/nutrition/date";
 import { cn } from "@/lib/utils";
 
 // Top-to-bottom display order (AI furthest from the +, Food nearest).
+// `dated` actions carry the viewed day so capture logs into the right date.
 const ACTIONS = [
-  { href: "/analyze", label: "AI", icon: Sparkles },
-  { href: "/scan", label: "Scan", icon: ScanBarcode },
-  { href: "/foods", label: "Food", icon: Apple },
+  { href: "/analyze", label: "AI", icon: Sparkles, dated: true },
+  { href: "/scan", label: "Scan", icon: ScanBarcode, dated: true },
+  { href: "/foods", label: "Food", icon: Apple, dated: false },
 ];
 
 export function AddSpeedDial() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const dateParam = useSearchParams().get("date");
+  // Only inherit the day when viewing a specific past day on the log page.
+  const logDate =
+    pathname === "/log" && dateParam && isIsoDate(dateParam) ? dateParam : null;
 
   return (
     <>
@@ -30,13 +38,14 @@ export function AddSpeedDial() {
       />
 
       <div className="fixed bottom-24 right-5 z-50 flex flex-col items-end gap-3">
-        {ACTIONS.map(({ href, label, icon: Icon }, i) => {
+        {ACTIONS.map(({ href, label, icon: Icon, dated }, i) => {
           // Nearest item (Log, last in array) animates first.
           const delay = open ? (ACTIONS.length - 1 - i) * 45 : 0;
+          const target = dated && logDate ? `${href}?date=${logDate}` : href;
           return (
             <Link
               key={href}
-              href={href}
+              href={target}
               onClick={() => setOpen(false)}
               tabIndex={open ? 0 : -1}
               className={cn(

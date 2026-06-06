@@ -5,8 +5,18 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { ensureDefaultNutrients } from "@/lib/data/setup";
 import { APP_TZ } from "@/lib/config";
-import { todayInTimezone } from "@/lib/nutrition/date";
+import { todayInTimezone, isIsoDate } from "@/lib/nutrition/date";
 import { normalizeBarcode } from "@/lib/providers/types";
+
+/** Resolve the day to log into: a valid, non-future `eaten_on` from the form,
+ * else today. Returns the date and where to send the user afterward — back to
+ * the day's log when editing the past, today's dashboard otherwise. */
+function resolveEatenOn(formData: FormData): { eatenOn: string; redirectTo: string } {
+  const today = todayInTimezone(APP_TZ);
+  const requested = String(formData.get("eaten_on") ?? "");
+  const eatenOn = isIsoDate(requested) && requested <= today ? requested : today;
+  return { eatenOn, redirectTo: eatenOn === today ? "/today" : `/log?date=${eatenOn}` };
+}
 
 interface ScanPayload {
   barcode?: string;
@@ -106,7 +116,7 @@ export async function logScannedProduct(formData: FormData) {
     .single();
   if (!food) return;
 
-  const eatenOn = todayInTimezone(APP_TZ);
+  const { eatenOn, redirectTo } = resolveEatenOn(formData);
   const { data: meal } = await supabase
     .from("meals")
     .select("id")
@@ -140,7 +150,8 @@ export async function logScannedProduct(formData: FormData) {
   revalidatePath("/today");
   revalidatePath("/log");
   revalidatePath("/foods");
-  redirect("/today");
+  revalidatePath("/settings");
+  redirect(redirectTo);
 }
 
 interface MealPhotoItem {
@@ -170,7 +181,7 @@ export async function logMealPhoto(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) return;
 
-  const eatenOn = todayInTimezone(APP_TZ);
+  const { eatenOn, redirectTo } = resolveEatenOn(formData);
   const { data: meal } = await supabase
     .from("meals")
     .select("id")
@@ -207,5 +218,6 @@ export async function logMealPhoto(formData: FormData) {
 
   revalidatePath("/today");
   revalidatePath("/log");
-  redirect("/today");
+  revalidatePath("/settings");
+  redirect(redirectTo);
 }
