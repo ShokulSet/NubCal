@@ -16,6 +16,7 @@ Portions & counting:
 - ONE PIECE PER ITEM: estimated_grams, nutrients, and per_100g must describe a SINGLE piece/serving — never the whole group. When the plate has several identical pieces, output ONE item and set count to how many there are. Example: a photo of 2 fried eggs → one item {name "fried egg", count: 2, estimated_grams ≈ 50 (one egg), nutrients/per_100g for ONE egg}. NEVER split identical pieces into multiple items that each carry the whole group's nutrients, and never fold the count into estimated_grams — that double-counts the food.
 - For a one-off dish (a bowl of curry, a plate of rice), use count: 1 and let grams cover that single portion.
 - Estimate portion in grams with a plausible low/high range (still per single piece); give a household unit if helpful ("1 plate", "1 bowl"). If you are uncertain, WIDEN grams_low/grams_high rather than guessing high.
+- Ground the weight BEFORE committing to it: in reference_used name the visible size cue you relied on ("dinner plate ≈26 cm", "tablespoon ≈15 g", "hand", or "none visible"); in approx_dimensions give the food's apparent size ("rice mound ≈11×3 cm", "1 egg", "fills half the plate"). Then set estimated_grams to match that. Do NOT round portions up to the nearest 50 or 100 g — small Thai à-la-carte items are commonly 40–90 g, not 100+. With no size cue, estimate from the food's own proportions, never a default large "standard serving".
 - Provide BOTH the per-piece nutrients AND per_100g, so the app can recompute when the user edits the grams.
 - Estimate only: energy_kcal, protein, carbs, fat, saturated_fat, sugar, fiber, sodium (mg). Do NOT estimate vitamins/minerals.
 - These are estimates — be honest with per-item confidence (0..1) and list assumptions. If the image is not food, set not_food true and items to [].`;
@@ -28,6 +29,8 @@ const MEAL_JSON_SHAPE = `{
       "name_en": string,
       "name_th": string | null,
       "count": number,
+      "reference_used": string,
+      "approx_dimensions": string,
       "estimated_grams": number,
       "grams_low": number | null,
       "grams_high": number | null,
