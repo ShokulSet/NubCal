@@ -6,25 +6,42 @@ import { fileToDownscaledBase64, videoFrameToBase64 } from "@/lib/image";
 import { Button } from "@/components/ui/button";
 import { CameraView } from "./CameraView";
 import { MealReview, toEdit, type ApiItem, type EditItem } from "./MealReview";
+import { LabelReview, type LabelData } from "./LabelReview";
 
 type Stage = "idle" | "camera" | "processing" | "review";
+/** Which review the routed result wants — set once the API classifies the photo. */
+type Result = "meal" | "label" | "not_food" | null;
 
 const uploadClass =
   "flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-line bg-surface/60 text-sm font-medium transition-colors hover:bg-surface";
 
-export function MealPhoto({ autoCamera = false }: { autoCamera?: boolean }) {
+/**
+ * Combined photo capture: one shot is sent to /api/capture/analyze which BOTH
+ * classifies and extracts, then we render the matching review — the meal review
+ * (logMealPhoto) or the label review (logScannedProduct). The optional `barcode`
+ * is passed straight to the label review so a saved product keeps its code, same
+ * as the old standalone Label flow.
+ */
+export function MealPhoto({
+  autoCamera = false,
+  barcode,
+}: {
+  autoCamera?: boolean;
+  barcode?: string;
+}) {
   const [stage, setStage] = useState<Stage>(autoCamera ? "camera" : "idle");
   const [error, setError] = useState<string | null>(null);
   const [hint, setHint] = useState("");
+  const [result, setResult] = useState<Result>(null);
   const [items, setItems] = useState<EditItem[]>([]);
-  const [notFood, setNotFood] = useState(false);
+  const [label, setLabel] = useState<LabelData | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   async function analyze(base64: string, mimeType: string) {
     setStage("processing");
     setError(null);
     try {
-      const res = await fetch("/api/meals/analyze", {
+      const res = await fetch("/api/capture/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageBase64: base64, mimeType, hint }),
@@ -35,12 +52,18 @@ export function MealPhoto({ autoCamera = false }: { autoCamera?: boolean }) {
         return;
       }
       const json = await res.json();
-      if (json.not_food || !json.items?.length) {
-        setNotFood(true);
+      if (json.type === "label" && json.label) {
+        setResult("label");
+        setLabel(json.label as LabelData);
         setItems([]);
-      } else {
-        setNotFood(false);
+      } else if (json.type === "meal" && json.items?.length) {
+        setResult("meal");
         setItems((json.items as ApiItem[]).map(toEdit));
+        setLabel(null);
+      } else {
+        setResult("not_food");
+        setItems([]);
+        setLabel(null);
       }
       setStage("review");
     } catch {
@@ -71,6 +94,13 @@ export function MealPhoto({ autoCamera = false }: { autoCamera?: boolean }) {
     } catch {
       setError("Couldn't capture — hold steady and try again.");
     }
+  }
+
+  function reset() {
+    setResult(null);
+    setItems([]);
+    setLabel(null);
+    setStage("idle");
   }
 
   // Live camera, mirroring the barcode scanner. Cleanup stops the stream when
@@ -108,30 +138,40 @@ export function MealPhoto({ autoCamera = false }: { autoCamera?: boolean }) {
   if (stage === "processing") {
     return (
       <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted">
-        <Loader2 className="h-4 w-4 animate-spin" /> Analyzing your meal…
+        <Loader2 className="h-4 w-4 animate-spin" /> Analyzing your photo…
       </div>
     );
   }
 
   if (stage === "review") {
-    if (notFood || items.length === 0) {
+    if (result === "label" && label) {
       return (
-        <div className="space-y-4 rounded-2xl border border-dashed border-line p-6 text-center">
-          <p className="text-sm text-muted">No food detected in that photo.</p>
-          <Button onClick={() => setStage("idle")}>Try another photo</Button>
-        </div>
+        <LabelReview
+          data={label}
+          setData={setLabel}
+          barcode={barcode}
+          onRetake={reset}
+        />
       );
     }
+    if (result === "meal" && items.length > 0) {
+      return (
+        <MealReview
+          items={items}
+          setItems={setItems}
+          backLabel="Retake"
+          onBack={reset}
+        />
+      );
+    }
+    // not_food (or an empty result)
     return (
-      <MealReview
-        items={items}
-        setItems={setItems}
-        backLabel="Retake"
-        onBack={() => {
-          setItems([]);
-          setStage("idle");
-        }}
-      />
+      <div className="space-y-4 rounded-2xl border border-dashed border-line p-6 text-center">
+        <p className="text-sm text-muted">
+          That didn&apos;t look like a label or a meal — try again.
+        </p>
+        <Button onClick={reset}>Try another photo</Button>
+      </div>
     );
   }
 
@@ -139,8 +179,8 @@ export function MealPhoto({ autoCamera = false }: { autoCamera?: boolean }) {
     return (
       <CameraView
         videoRef={videoRef}
-        title="Analyze meal"
-        caption="Center your plate, then tap to capture"
+        title="Analyze photo"
+        caption="Center your plate or a label, then tap to capture"
         onClose={() => setStage("idle")}
         hint={
           <input
@@ -190,7 +230,7 @@ export function MealPhoto({ autoCamera = false }: { autoCamera?: boolean }) {
           <Camera className="h-7 w-7" />
         </div>
         <p className="text-sm text-muted">
-          Snap your plate and let AI estimate the portions and macros.
+          Snap a plate or a nutrition label — AI reads either one.
         </p>
         <div className="flex flex-col gap-2">
           <Button onClick={() => setStage("camera")}>

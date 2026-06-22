@@ -2,20 +2,19 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Sparkles, FileText, PencilLine } from "lucide-react";
-import { LabelOcr } from "@/components/scan/LabelOcr";
+import { Sparkles, PencilLine } from "lucide-react";
 import { MealPhoto } from "@/components/scan/MealPhoto";
 import { MealText } from "@/components/scan/MealText";
 import { cn } from "@/lib/utils";
 
-type Tab = "meal" | "text" | "label";
+type Tab = "photo" | "text";
 
 function AnalyzeInner() {
   const sp = useSearchParams();
   const initial = sp.get("tab");
-  const [tab, setTab] = useState<Tab>(
-    initial === "label" ? "label" : initial === "text" ? "text" : "meal",
-  );
+  // `tab=label` is kept for backward-compat — the label flow now lives inside
+  // the unified Photo tab, so it maps there.
+  const [tab, setTab] = useState<Tab>(initial === "text" ? "text" : "photo");
   const barcode = sp.get("barcode") ?? undefined;
   const autoCamera = sp.get("camera") === "1";
 
@@ -32,24 +31,19 @@ function AnalyzeInner() {
         <h1 className="text-[2.2rem] leading-none">Analyze</h1>
       </header>
 
-      <div className="grid grid-cols-3 gap-1 rounded-full border border-line bg-surface/40 p-1">
-        <button type="button" onClick={() => setTab("meal")} className={tabClass(tab === "meal")}>
+      <div className="grid grid-cols-2 gap-1 rounded-full border border-line bg-surface/40 p-1">
+        <button type="button" onClick={() => setTab("photo")} className={tabClass(tab === "photo")}>
           <Sparkles className="h-4 w-4" /> Photo
         </button>
         <button type="button" onClick={() => setTab("text")} className={tabClass(tab === "text")}>
           <PencilLine className="h-4 w-4" /> Describe
         </button>
-        <button type="button" onClick={() => setTab("label")} className={tabClass(tab === "label")}>
-          <FileText className="h-4 w-4" /> Label
-        </button>
       </div>
 
-      {tab === "meal" ? (
-        <MealPhoto autoCamera={autoCamera} />
-      ) : tab === "text" ? (
-        <MealText />
+      {tab === "photo" ? (
+        <MealPhoto autoCamera={autoCamera} barcode={barcode} />
       ) : (
-        <LabelOcr barcode={barcode} />
+        <MealText />
       )}
     </div>
   );

@@ -244,7 +244,7 @@ export default function ScanPage() {
             Food Facts or USDA. Common for Thai products — read the label with AI instead.
           </p>
           <div className="flex flex-col gap-2">
-            <a href={`/analyze?tab=label&barcode=${result.barcode}`}>
+            <a href={`/analyze?tab=photo&barcode=${result.barcode}`}>
               <Button className="w-full">Read the label (AI)</Button>
             </a>
             <div className="flex justify-center gap-2">
