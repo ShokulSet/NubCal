@@ -17,7 +17,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 /**
- * One photo → one Vertex call that BOTH classifies and extracts. Routes to a
+ * One photo → one Gemini call that BOTH classifies and extracts. Routes to a
  * label result (mirrors /api/labels/ocr) or a meal result (mirrors
  * /api/meals/analyze); anything else returns not_food.
  */

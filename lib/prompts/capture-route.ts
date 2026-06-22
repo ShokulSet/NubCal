@@ -2,7 +2,7 @@ import { MEAL_SYSTEM_INSTRUCTION, analyzeMealPrompt } from "./analyze-meal";
 import { OCR_SYSTEM_INSTRUCTION, ocrLabelPrompt } from "./ocr-label";
 
 /**
- * One photo, one Vertex call: classify the image as a packaged nutrition LABEL,
+ * One photo, one Gemini call: classify the image as a packaged nutrition LABEL,
  * a prepared MEAL, or NOT_FOOD, and extract the matching structure. The system
  * instruction reuses the existing OCR and meal rules verbatim so each branch
  * behaves exactly like the standalone /api/labels/ocr and /api/meals/analyze

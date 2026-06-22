@@ -21,7 +21,7 @@ analysis of a meal photo.
 - **Hosting:** Vercel
 - **Cloud / AI:** Google Cloud Platform (GCP)
   - **GCS** — image storage (meal photos, label scans)
-  - **Vertex AI** — meal photo analysis, OCR / nutrient extraction
+  - **Gemini (AI Studio API)** — meal photo analysis, OCR / nutrient extraction
 
 ## Status
 
