@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { MealReview, toEdit, type ApiItem, type EditItem } from "./MealReview";
 
-export function MealText() {
+export function MealText({ eatenOn }: { eatenOn?: string }) {
   const [stage, setStage] = useState<"input" | "processing" | "review">("input");
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -65,6 +65,7 @@ export function MealText() {
         items={items}
         setItems={setItems}
         backLabel="Edit text"
+        eatenOn={eatenOn}
         onBack={() => setStage("input")}
       />
     );

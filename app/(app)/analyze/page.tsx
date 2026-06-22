@@ -17,6 +17,8 @@ function AnalyzeInner() {
   const [tab, setTab] = useState<Tab>(initial === "text" ? "text" : "photo");
   const barcode = sp.get("barcode") ?? undefined;
   const autoCamera = sp.get("camera") === "1";
+  // Day to log into, carried via ?date= when arriving from a past day's log.
+  const eatenOn = sp.get("date") ?? undefined;
 
   const tabClass = (active: boolean) =>
     cn(
@@ -41,9 +43,9 @@ function AnalyzeInner() {
       </div>
 
       {tab === "photo" ? (
-        <MealPhoto autoCamera={autoCamera} barcode={barcode} />
+        <MealPhoto autoCamera={autoCamera} barcode={barcode} eatenOn={eatenOn} />
       ) : (
-        <MealText />
+        <MealText eatenOn={eatenOn} />
       )}
     </div>
   );

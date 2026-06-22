@@ -30,6 +30,11 @@ interface Food {
   serving_unit: string;
 }
 
+type OptimisticAction =
+  | { type: "add"; item: Item }
+  | { type: "remove"; id: string }
+  | { type: "update"; id: string; quantity: number };
+
 /** Calories + big-3 macros for one logged item, scaled by its quantity. */
 function MacroChips({ item }: { item: Item }) {
   const c = itemContribution(item.nutrients_snapshot ?? {}, item.quantity);
@@ -55,12 +60,26 @@ export function LogClient({
   eatenOn: string;
   today: string;
 }) {
-  const [optimisticItems, addOptimistic] = useOptimistic(
+  const [optimisticItems, applyOptimistic] = useOptimistic(
     items,
-    (state: Item[], next: Item) => [...state, next],
+    (state: Item[], action: OptimisticAction) => {
+      switch (action.type) {
+        case "add":
+          return [...state, action.item];
+        case "remove":
+          return state.filter((it) => it.id !== action.id);
+        case "update":
+          return state.map((it) =>
+            it.id === action.id ? { ...it, quantity: action.quantity } : it,
+          );
+      }
+    },
   );
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [editQty, setEditQty] = useState(1);
+  // String-backed so a partial decimal like "0." survives a keystroke.
+  const [editQty, setEditQty] = useState("1");
+
+  const editQtyNum = Number(editQty) || 0;
 
   const isToday = eatenOn === today;
   const prevIso = addDaysIso(eatenOn, -1);
@@ -74,17 +93,36 @@ export function LogClient({
   async function handleLog(formData: FormData) {
     const food = foods.find((f) => f.id === String(formData.get("food_id") ?? ""));
     if (food) {
-      addOptimistic({
-        id: `temp-${Math.random()}`,
-        meal_id: "",
-        name: food.name,
-        quantity: Number(formData.get("quantity") ?? 1) || 1,
-        serving_size: food.serving_size,
-        serving_unit: food.serving_unit,
-        nutrients_snapshot: {},
+      applyOptimistic({
+        type: "add",
+        item: {
+          id: `temp-${Math.random()}`,
+          meal_id: "",
+          name: food.name,
+          quantity: Number(formData.get("quantity") ?? 1) || 1,
+          serving_size: food.serving_size,
+          serving_unit: food.serving_unit,
+          nutrients_snapshot: {},
+        },
       });
     }
     await logFood(formData);
+  }
+
+  async function handleUpdate(formData: FormData) {
+    applyOptimistic({
+      type: "update",
+      id: String(formData.get("id") ?? ""),
+      quantity: Number(formData.get("quantity")) || 0,
+    });
+    setExpandedId(null);
+    await updateMealItem(formData);
+  }
+
+  async function handleRemove(formData: FormData) {
+    applyOptimistic({ type: "remove", id: String(formData.get("id") ?? "") });
+    setExpandedId(null);
+    await removeMealItem(formData);
   }
 
   function toggle(it: Item) {
@@ -93,7 +131,7 @@ export function LogClient({
       return;
     }
     setExpandedId(it.id);
-    setEditQty(it.quantity);
+    setEditQty(String(it.quantity));
   }
 
   return (
@@ -215,17 +253,18 @@ export function LogClient({
                             className="h-9 w-9"
                             aria-label="One fewer serving"
                             onClick={() =>
-                              setEditQty((q) => Math.max(0, Math.round((q - 1) * 100) / 100))
+                              setEditQty((q) =>
+                                String(Math.max(0, Math.round((Number(q) - 1) * 100) / 100)),
+                              )
                             }
                           >
                             <Minus className="h-4 w-4" />
                           </Button>
                           <Input
-                            type="number"
-                            step="any"
+                            type="text"
                             inputMode="decimal"
                             value={editQty}
-                            onChange={(e) => setEditQty(Number(e.target.value) || 0)}
+                            onChange={(e) => setEditQty(e.target.value.replace(/[^\d.]/g, ""))}
                             className="h-9 w-16 text-center"
                             aria-label="Servings"
                           />
@@ -235,24 +274,26 @@ export function LogClient({
                             size="icon"
                             className="h-9 w-9"
                             aria-label="One more serving"
-                            onClick={() => setEditQty((q) => Math.round((q + 1) * 100) / 100)}
+                            onClick={() =>
+                              setEditQty((q) => String(Math.round((Number(q) + 1) * 100) / 100))
+                            }
                           >
                             <Plus className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
 
-                      <MacroChips item={{ ...it, quantity: editQty }} />
+                      <MacroChips item={{ ...it, quantity: editQtyNum }} />
 
                       <div className="flex gap-2 pt-1">
-                        <form action={updateMealItem} className="flex-1">
+                        <form action={handleUpdate} className="flex-1">
                           <input type="hidden" name="id" value={it.id} />
                           <input type="hidden" name="quantity" value={editQty} />
                           <SubmitButton className="w-full" pendingLabel="Saving…">
                             Save
                           </SubmitButton>
                         </form>
-                        <form action={removeMealItem}>
+                        <form action={handleRemove}>
                           <input type="hidden" name="id" value={it.id} />
                           <SubmitButton
                             variant="outline"

@@ -20,14 +20,17 @@ const uploadClass =
  * classifies and extracts, then we render the matching review — the meal review
  * (logMealPhoto) or the label review (logScannedProduct). The optional `barcode`
  * is passed straight to the label review so a saved product keeps its code, same
- * as the old standalone Label flow.
+ * as the old standalone Label flow. `eatenOn` (a validated, non-future day from a
+ * past day's log) is threaded into both reviews so either logs to the chosen day.
  */
 export function MealPhoto({
   autoCamera = false,
   barcode,
+  eatenOn,
 }: {
   autoCamera?: boolean;
   barcode?: string;
+  eatenOn?: string;
 }) {
   const [stage, setStage] = useState<Stage>(autoCamera ? "camera" : "idle");
   const [error, setError] = useState<string | null>(null);
@@ -150,6 +153,7 @@ export function MealPhoto({
           data={label}
           setData={setLabel}
           barcode={barcode}
+          eatenOn={eatenOn}
           onRetake={reset}
         />
       );
@@ -160,6 +164,7 @@ export function MealPhoto({
           items={items}
           setItems={setItems}
           backLabel="Retake"
+          eatenOn={eatenOn}
           onBack={reset}
         />
       );

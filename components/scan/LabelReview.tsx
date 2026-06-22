@@ -30,12 +30,15 @@ export function LabelReview({
   data,
   setData,
   barcode,
+  eatenOn,
   onRetake,
   retakeLabel = "Retake",
 }: {
   data: LabelData;
   setData: React.Dispatch<React.SetStateAction<LabelData | null>>;
   barcode?: string;
+  /** Day to log into; carried from a past day's log. Empty ⇒ today. */
+  eatenOn?: string;
   onRetake: () => void;
   retakeLabel?: string;
 }) {
@@ -66,6 +69,7 @@ export function LabelReview({
   return (
     <form action={logScannedProduct} className="space-y-4">
       <input type="hidden" name="payload" value={payload} />
+      <input type="hidden" name="eaten_on" value={eatenOn ?? ""} />
 
       {lowConfidence && (
         <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950/40">

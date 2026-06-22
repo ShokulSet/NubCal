@@ -111,11 +111,14 @@ export function MealReview({
   setItems,
   onBack,
   backLabel,
+  eatenOn,
 }: {
   items: EditItem[];
   setItems: React.Dispatch<React.SetStateAction<EditItem[]>>;
   onBack: () => void;
   backLabel: string;
+  /** Day to log into; carried from a past day's log. Empty ⇒ today. */
+  eatenOn?: string;
 }) {
   function setGrams(idx: number, raw: string) {
     const grams = Number(raw) || 0;
@@ -162,6 +165,7 @@ export function MealReview({
   return (
     <form action={logMealPhoto} className="space-y-4">
       <input type="hidden" name="payload" value={payload} />
+      <input type="hidden" name="eaten_on" value={eatenOn ?? ""} />
 
       <p className="flex items-center gap-2 rounded-xl bg-leaf/10 px-4 py-3 text-sm text-leaf">
         <Sparkles className="h-4 w-4 shrink-0" />
