@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { generateJson } from "@/lib/gcp/vertex";
+import { generateJson } from "@/lib/gcp/gemini";
 import { OCR_SYSTEM_INSTRUCTION, ocrLabelPrompt } from "@/lib/prompts/ocr-label";
 import {
   labelResultSchema,
