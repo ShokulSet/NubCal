@@ -70,6 +70,12 @@ export async function POST(req: Request) {
       items,
     });
   } catch (e) {
+    console.error(
+      "[meals/analyze] failed; hasGeminiKey=",
+      !!(process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY),
+      "err=",
+      e instanceof Error ? e.message : e,
+    );
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "analyze failed" },
       { status: 500 },
