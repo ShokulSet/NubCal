@@ -425,24 +425,24 @@ export function ScanCamera({
             }}
             className="space-y-4"
           >
-            <header>
-              <p className="eyebrow">Scan</p>
-              <h1 className="text-[2rem] leading-none">Describe</h1>
+            <header className="space-y-1">
+              <p className="eyebrow">Describe</p>
+              <h1 className="text-[2rem] leading-none">What did you eat?</h1>
             </header>
             {error && (
-              <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950/40">
+              <p className="rounded-xl border border-chili/25 bg-chili/10 px-4 py-3 text-sm text-chili">
                 {error}
               </p>
             )}
             <div className="space-y-2">
-              <Label htmlFor="meal-text">What did you eat?</Label>
+              <Label htmlFor="meal-text">Describe your meal</Label>
               <textarea
                 id="meal-text"
                 value={describeText}
                 onChange={(e) => setDescribeText(e.target.value)}
                 rows={4}
                 placeholder="e.g. 2 หมั่นโถว, a bowl of pad kra pao with chicken over rice, and a glass of soy milk"
-                className="w-full rounded-xl border border-line bg-surface/60 p-3 text-sm text-ink outline-none placeholder:text-muted/60 focus:border-leaf"
+                className="w-full rounded-xl border border-line bg-surface/60 p-3 text-base text-ink outline-none transition-colors placeholder:text-muted/60 focus-visible:border-leaf/50 focus-visible:ring-2 focus-visible:ring-leaf/20"
                 autoFocus
               />
               <p className="text-xs text-muted">
@@ -483,7 +483,7 @@ export function ScanCamera({
           }}
           className="space-y-3"
         >
-          <header>
+          <header className="space-y-1">
             <p className="eyebrow">Scan</p>
             <h1 className="text-[2rem] leading-none">Enter barcode</h1>
           </header>
@@ -493,10 +493,11 @@ export function ScanCamera({
             onChange={(e) => setManualCode(e.target.value)}
             inputMode="numeric"
             placeholder="e.g. 8850123456789"
+            className="font-mono tnum"
             autoFocus
           />
           {error && (
-            <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950/40">
+            <p className="rounded-xl border border-chili/25 bg-chili/10 px-4 py-3 text-sm text-chili">
               {error}
             </p>
           )}
@@ -517,22 +518,23 @@ export function ScanCamera({
     const result = productResult;
     return (
       <ReviewShell onClose={close}>
-        <div className="space-y-4 rounded-3xl border border-line bg-surface/50 p-4">
+        <header className="space-y-1">
+          <p className="eyebrow">Found it</p>
+          <h1 className="text-[1.7rem] leading-tight">{product.name}</h1>
+        </header>
+        <div className="space-y-4 rounded-3xl border border-line bg-surface/60 p-4">
           <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="truncate text-lg font-semibold">{product.name}</p>
-              <p className="text-xs text-muted">
-                {product.brand ? `${product.brand} · ` : ""}
-                {product.serving_size} {product.serving_unit} ·{" "}
-                {result.status === "cache" ? "saved" : `via ${product.source}`}
-              </p>
-            </div>
-            <span className="tnum rounded-full bg-leaf/10 px-2 py-1 font-mono text-[10px] font-medium text-leaf">
+            <p className="min-w-0 text-xs text-muted">
+              {product.brand ? `${product.brand} · ` : ""}
+              {product.serving_size} {product.serving_unit} ·{" "}
+              {result.status === "cache" ? "saved" : `via ${product.source}`}
+            </p>
+            <span className="tnum shrink-0 rounded-full bg-leaf/10 px-2.5 py-1 font-mono text-[10px] font-medium text-leaf">
               {product.barcode}
             </span>
           </div>
 
-          <div className="space-y-2 rounded-xl border border-line p-3">
+          <div className="space-y-2 rounded-2xl border border-line bg-paper/40 p-3">
             <p className="text-xs font-medium text-muted">Per serving — tap to fix</p>
             <div className="grid grid-cols-2 gap-x-3 gap-y-2">
               {NUTRIENT_ORDER.map((key) => (
@@ -601,7 +603,7 @@ export function ScanCamera({
   const busy = phase === "looking_up" || phase === "analyzing";
 
   return (
-    <div className="animate-fade fixed inset-0 z-[60] bg-black text-cream">
+    <div className="animate-fade fixed inset-0 z-[60] bg-[#14110c] text-cream">
       {liveSupported ? (
         <video
           ref={videoRef}
@@ -611,12 +613,13 @@ export function ScanCamera({
           className="absolute inset-0 h-full w-full object-cover"
         />
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-[#322c24] via-[#16130d] to-[#0a0805]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#2a2419] via-[#1a160f] to-[#0f0c08]" />
       )}
 
-      {/* Legibility scrims, top + bottom. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-black/65 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-black/85 to-transparent" />
+      {/* Legibility scrims, top + bottom — warm-toned so they read as part of
+          the paper world rather than a generic black overlay. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-[#14110c]/70 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-72 bg-gradient-to-t from-[#14110c]/90 to-transparent" />
 
       {/* Top bar: close + editorial title. */}
       <div
@@ -627,11 +630,11 @@ export function ScanCamera({
           type="button"
           onClick={close}
           aria-label="Close camera"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/45 backdrop-blur-md transition active:scale-90"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-cream/15 bg-[#14110c]/55 text-cream backdrop-blur-md transition active:scale-90"
         >
           <X className="h-5 w-5" />
         </button>
-        <span className="truncate rounded-full bg-black/45 px-3.5 py-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.22em] text-cream backdrop-blur-md">
+        <span className="truncate rounded-full border border-cream/15 bg-[#14110c]/55 px-3.5 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-cream backdrop-blur-md">
           Scan
         </span>
       </div>
@@ -639,7 +642,7 @@ export function ScanCamera({
       {/* Guide text — ABOVE the reticle, never overlapping it. */}
       {!busy && (
         <div className="pointer-events-none absolute inset-x-0 top-[30%] z-10 flex -translate-y-1/2 justify-center px-6">
-          <p className="rounded-full border border-cream/15 bg-black/50 px-4 py-2 text-center text-sm text-cream backdrop-blur-md">
+          <p className="rounded-full border border-cream/15 bg-[#14110c]/55 px-4 py-2 text-center text-sm text-cream backdrop-blur-md">
             Center a barcode in the frame
           </p>
         </div>
@@ -701,8 +704,8 @@ export function ScanCamera({
           <p
             className={
               error
-                ? "rounded-full bg-amber-500/20 px-4 py-2 text-center text-sm text-amber-100 backdrop-blur-md"
-                : "rounded-full bg-black/55 px-4 py-2 text-center text-sm text-cream backdrop-blur-md"
+                ? "rounded-full border border-chili/40 bg-chili/25 px-4 py-2 text-center text-sm text-cream backdrop-blur-md"
+                : "rounded-full border border-cream/15 bg-[#14110c]/60 px-4 py-2 text-center text-sm text-cream backdrop-blur-md"
             }
           >
             {error ?? notice}
@@ -740,7 +743,7 @@ export function ScanCamera({
           <div className="flex flex-col items-center gap-1.5">
             <label
               aria-label="Pick a photo from your library"
-              className="flex h-[46px] w-[46px] cursor-pointer items-center justify-center rounded-full border border-cream/30 bg-black/35 text-cream backdrop-blur-md transition active:scale-90"
+              className="flex h-[46px] w-[46px] cursor-pointer items-center justify-center rounded-full border border-cream/25 bg-[#14110c]/55 text-cream backdrop-blur-md transition active:scale-90"
             >
               <ImageIcon className="h-5 w-5" />
               <input
@@ -764,7 +767,7 @@ export function ScanCamera({
                 setMode("describe");
               }}
               aria-label="Describe what you ate"
-              className="flex h-[46px] w-[46px] items-center justify-center rounded-full border border-cream/30 bg-black/35 text-cream backdrop-blur-md transition active:scale-90"
+              className="flex h-[46px] w-[46px] items-center justify-center rounded-full border border-cream/25 bg-[#14110c]/55 text-cream backdrop-blur-md transition active:scale-90"
             >
               <PencilLine className="h-5 w-5" />
             </button>
@@ -780,7 +783,7 @@ export function ScanCamera({
                 setMode("manual");
               }}
               aria-label="Enter the barcode manually"
-              className="flex h-[46px] w-[46px] items-center justify-center rounded-full border border-cream/30 bg-black/35 text-cream backdrop-blur-md transition active:scale-90"
+              className="flex h-[46px] w-[46px] items-center justify-center rounded-full border border-cream/25 bg-[#14110c]/55 text-cream backdrop-blur-md transition active:scale-90"
             >
               <Keyboard className="h-5 w-5" />
             </button>
@@ -805,14 +808,14 @@ function ReviewShell({
   onClose: () => void;
 }) {
   return (
-    <div className="space-y-6">
+    <div className="animate-rise space-y-6">
       <div className="flex items-center justify-between">
         <p className="eyebrow">Scan</p>
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition hover:text-ink"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-surface/60 text-muted transition hover:text-ink"
         >
           <X className="h-4 w-4" />
         </button>

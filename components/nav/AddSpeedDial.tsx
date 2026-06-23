@@ -2,16 +2,17 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Apple, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { isIsoDate } from "@/lib/nutrition/date";
 
 /**
  * Capture is one tap: the primary "+" goes straight to /scan — the single
  * surface that now handles every capture path (barcode auto-detect, photo→AI via
  * Capture/Library, text→AI via Describe, and manual barcode). No expanding menu
- * of capture choices. The non-capture destination (Foods) stays reachable as a
- * lighter companion button above the FAB. Both carry the viewed day (?date=) when
- * looking at a specific past day on the log so capture logs into the right date.
+ * of capture choices. The food library is reached via the Log page's Log/Foods
+ * toggle, so there's no longer a separate Foods companion here. The FAB carries
+ * the viewed day (?date=) when looking at a specific past day on the log so
+ * capture logs into the right date.
  */
 export function AddSpeedDial() {
   const pathname = usePathname();
@@ -25,20 +26,6 @@ export function AddSpeedDial() {
 
   return (
     <div className="fixed bottom-24 right-5 z-50 flex flex-col items-end gap-3">
-      {/* Foods — lighter companion so the food library stays one tap away. */}
-      <Link
-        href="/foods"
-        aria-label="Browse foods"
-        className="flex items-center gap-3"
-      >
-        <span className="rounded-full bg-ink/90 px-3 py-1 text-xs font-semibold uppercase tracking-[0.06em] text-paper shadow-sm">
-          Food
-        </span>
-        <span className="flex h-12 w-12 items-center justify-center rounded-full border border-line bg-surface text-leaf shadow-[0_10px_24px_-12px_rgba(31,107,67,0.55)]">
-          <Apple className="h-5 w-5" />
-        </span>
-      </Link>
-
       {/* Primary capture action — one tap straight to the unified /scan surface. */}
       <Link
         href={withDate("/scan")}

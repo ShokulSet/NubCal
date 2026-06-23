@@ -71,14 +71,19 @@ export function LabelReview({
       <input type="hidden" name="payload" value={payload} />
       <input type="hidden" name="eaten_on" value={eatenOn ?? ""} />
 
+      <header className="space-y-1">
+        <p className="eyebrow">Nutrition label</p>
+        <h1 className="text-[1.7rem] leading-tight">Review &amp; log</h1>
+      </header>
+
       {lowConfidence && (
-        <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950/40">
+        <p className="flex items-start gap-2 rounded-xl border border-amber/25 bg-amber/10 px-4 py-3 text-sm text-amber">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           Low confidence ({Math.round(data.confidence * 100)}%) — please check every value.
         </p>
       )}
       {data.warnings.map((w, i) => (
-        <p key={i} className="rounded-xl bg-amber-50 px-4 py-2 text-xs text-amber-800 dark:bg-amber-950/40">
+        <p key={i} className="rounded-xl border border-amber/25 bg-amber/10 px-4 py-2 text-xs text-amber">
           {w}
         </p>
       ))}
@@ -115,7 +120,7 @@ export function LabelReview({
         </div>
       </div>
 
-      <div className="space-y-3 rounded-2xl border border-line p-4">
+      <div className="space-y-3 rounded-2xl border border-line bg-surface/40 p-4">
         <p className="text-sm font-semibold text-muted">Per serving</p>
         {NUTRIENT_ORDER.map((key) => (
           <div key={key} className="flex items-center justify-between gap-3">

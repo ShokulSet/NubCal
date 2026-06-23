@@ -167,7 +167,12 @@ export function MealReview({
       <input type="hidden" name="payload" value={payload} />
       <input type="hidden" name="eaten_on" value={eatenOn ?? ""} />
 
-      <p className="flex items-center gap-2 rounded-xl bg-leaf/10 px-4 py-3 text-sm text-leaf">
+      <header className="space-y-1">
+        <p className="eyebrow">Meal estimate</p>
+        <h1 className="text-[1.7rem] leading-tight">Review &amp; log</h1>
+      </header>
+
+      <p className="flex items-center gap-2 rounded-xl border border-leaf/20 bg-leaf/10 px-4 py-3 text-sm text-leaf">
         <Sparkles className="h-4 w-4 shrink-0" />
         AI estimate — adjust portions and verify before logging.
       </p>
@@ -178,7 +183,7 @@ export function MealReview({
           return (
             <div
               key={idx}
-              className="space-y-3 rounded-2xl border border-line p-3"
+              className="space-y-3 rounded-2xl border border-line bg-surface/40 p-3"
             >
               <div className="flex items-center gap-2">
                 <Input
@@ -194,7 +199,7 @@ export function MealReview({
                   aria-label="Remove item"
                   onClick={() => removeItem(idx)}
                 >
-                  <Trash2 className="h-4 w-4 text-zinc-400" />
+                  <Trash2 className="h-4 w-4 text-muted" />
                 </Button>
               </div>
 

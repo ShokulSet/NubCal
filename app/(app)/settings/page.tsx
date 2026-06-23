@@ -144,7 +144,7 @@ export default async function ProfilePage() {
           <ChevronRight className="h-4 w-4 text-muted" />
         </Link>
         <Link
-          href="/foods"
+          href="/log?view=foods"
           className="flex items-center justify-between border-t border-line px-4 py-3 text-sm hover:bg-black/[.03] dark:hover:bg-white/[.04]"
         >
           <span>Your foods</span>
