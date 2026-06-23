@@ -1,60 +1,29 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { Sparkles, PencilLine } from "lucide-react";
-import { MealPhoto } from "@/components/scan/MealPhoto";
-import { MealText } from "@/components/scan/MealText";
-import { cn } from "@/lib/utils";
+/**
+ * Legacy capture entry point. Every capture path — barcode, photo→AI (Capture /
+ * Library), text→AI (Describe), and manual barcode — now lives on the unified
+ * /scan surface, so this route just forwards there. The day-to-log-into (`date`)
+ * and the legacy `camera=1` deep-link are carried across; the old `tab`/`barcode`
+ * params are dropped since /scan owns those flows itself.
+ */
+export default async function AnalyzePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
+  const pick = (key: string) => {
+    const v = sp[key];
+    return Array.isArray(v) ? v[0] : v;
+  };
 
-type Tab = "photo" | "text";
+  const params = new URLSearchParams();
+  const date = pick("date");
+  const camera = pick("camera");
+  if (date) params.set("date", date);
+  if (camera) params.set("camera", camera);
 
-function AnalyzeInner() {
-  const sp = useSearchParams();
-  const initial = sp.get("tab");
-  // `tab=label` is kept for backward-compat — the label flow now lives inside
-  // the unified Photo tab, so it maps there.
-  const [tab, setTab] = useState<Tab>(initial === "text" ? "text" : "photo");
-  const barcode = sp.get("barcode") ?? undefined;
-  const autoCamera = sp.get("camera") === "1";
-  // Day to log into, carried via ?date= when arriving from a past day's log.
-  const eatenOn = sp.get("date") ?? undefined;
-
-  const tabClass = (active: boolean) =>
-    cn(
-      "flex items-center justify-center gap-1.5 rounded-full py-2 text-sm font-medium transition-colors",
-      active ? "bg-leaf text-paper" : "text-muted hover:text-ink",
-    );
-
-  return (
-    <div className="space-y-6">
-      <header>
-        <p className="eyebrow">AI capture</p>
-        <h1 className="text-[2.2rem] leading-none">Analyze</h1>
-      </header>
-
-      <div className="grid grid-cols-2 gap-1 rounded-full border border-line bg-surface/40 p-1">
-        <button type="button" onClick={() => setTab("photo")} className={tabClass(tab === "photo")}>
-          <Sparkles className="h-4 w-4" /> Photo
-        </button>
-        <button type="button" onClick={() => setTab("text")} className={tabClass(tab === "text")}>
-          <PencilLine className="h-4 w-4" /> Describe
-        </button>
-      </div>
-
-      {tab === "photo" ? (
-        <MealPhoto autoCamera={autoCamera} barcode={barcode} eatenOn={eatenOn} />
-      ) : (
-        <MealText eatenOn={eatenOn} />
-      )}
-    </div>
-  );
-}
-
-export default function AnalyzePage() {
-  return (
-    <Suspense fallback={null}>
-      <AnalyzeInner />
-    </Suspense>
-  );
+  const query = params.toString();
+  redirect(query ? `/scan?${query}` : "/scan");
 }

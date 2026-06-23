@@ -1,7 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Image as ImageIcon, Keyboard, Loader2, ScanLine, X } from "lucide-react";
+import {
+  Image as ImageIcon,
+  Keyboard,
+  Loader2,
+  PencilLine,
+  ScanLine,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { logScannedProduct } from "@/app/(app)/scan/actions";
 import { fileToDownscaledBase64, videoFrameToBase64 } from "@/lib/image";
@@ -9,6 +17,7 @@ import { NUTRIENT_META, NUTRIENT_ORDER } from "@/lib/nutrition/meta";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { MealReview, toEdit, type ApiItem, type EditItem } from "./MealReview";
 import { LabelReview, type LabelData } from "./LabelReview";
 
@@ -40,7 +49,14 @@ type Phase =
 
 /** Which screen to show once we leave the live camera. The editable data for
  * each review lives in its own state so the review components get real setters. */
-type Mode = "camera" | "product" | "label" | "meal" | "not_food" | "manual";
+type Mode =
+  | "camera"
+  | "product"
+  | "label"
+  | "meal"
+  | "not_food"
+  | "manual"
+  | "describe";
 
 /** A resolved barcode that maps to a real product (cache / OFF / USDA). */
 type ProductResult = Exclude<ApiResult, { status: "not_found" }>;
@@ -83,6 +99,14 @@ export function ScanCamera({
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState("");
+  const [describeText, setDescribeText] = useState("");
+  // True while the text→AI estimate request is in flight (the describe surface
+  // has its own busy state since the camera is torn down).
+  const [describing, setDescribing] = useState(false);
+  // Whether the current meal/not-food review came from the Describe path, so its
+  // "back" returns to the text editor (with the text intact) rather than the
+  // live camera.
+  const [mealFromText, setMealFromText] = useState(false);
   const [editNutrients, setEditNutrients] = useState<Record<string, number>>({});
 
   // Whether the browser can run a live camera + barcode detector at all. When
@@ -150,6 +174,7 @@ export function ScanCamera({
         return;
       }
       const json = await res.json();
+      setMealFromText(false);
       if (json.type === "label" && json.label) {
         setLabel(json.label as LabelData);
         setMode("label");
@@ -162,6 +187,39 @@ export function ScanCamera({
     } catch {
       setError("Something went wrong processing the image.");
       setPhase("scanning");
+    }
+  }, []);
+
+  // ---- AI estimate from a typed description (Describe path) ----------------
+  // Same contract as the old MealText flow: POST /api/meals/analyze { text } →
+  // meal review on success, the shared not-food state when nothing edible was
+  // found, a friendly error otherwise. Kept as a mode within this surface.
+  const estimateFromText = useCallback(async (text: string) => {
+    if (!text.trim()) return;
+    setDescribing(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/meals/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) {
+        setError("Couldn't estimate that — try rephrasing or adding amounts.");
+        return;
+      }
+      const json = await res.json();
+      setMealFromText(true);
+      if (json.not_food || !json.items?.length) {
+        setMode("not_food");
+      } else {
+        setItems((json.items as ApiItem[]).map(toEdit));
+        setMode("meal");
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setDescribing(false);
     }
   }, []);
 
@@ -197,8 +255,19 @@ export function ScanCamera({
     setError(null);
     setNotice(null);
     setManualCode("");
+    setDescribeText("");
+    setDescribing(false);
+    setMealFromText(false);
     setPendingBarcode(undefined);
     setPhase("scanning");
+  }
+
+  // Return to the text editor from a text-originated review, keeping the typed
+  // description so the user can tweak it and re-estimate.
+  function backToDescribe() {
+    setMode("describe");
+    setItems([]);
+    setError(null);
   }
 
   // ---- Live camera + barcode loop ------------------------------------------
@@ -313,9 +382,9 @@ export function ScanCamera({
         <MealReview
           items={items}
           setItems={setItems}
-          backLabel="Retake"
+          backLabel={mealFromText ? "Edit text" : "Retake"}
           eatenOn={eatenOn}
-          onBack={backToCamera}
+          onBack={mealFromText ? backToDescribe : backToCamera}
         />
       </ReviewShell>
     );
@@ -326,10 +395,80 @@ export function ScanCamera({
       <ReviewShell onClose={close}>
         <div className="space-y-4 rounded-2xl border border-dashed border-line p-6 text-center">
           <p className="text-sm text-muted">
-            That didn&apos;t look like a label or a meal — try again.
+            {mealFromText
+              ? "No food found in that description — try adding more detail."
+              : "That didn't look like a label or a meal — try again."}
           </p>
-          <Button onClick={backToCamera}>Back to camera</Button>
+          {mealFromText ? (
+            <Button onClick={backToDescribe}>Edit description</Button>
+          ) : (
+            <Button onClick={backToCamera}>Back to camera</Button>
+          )}
         </div>
+      </ReviewShell>
+    );
+  }
+
+  if (mode === "describe") {
+    return (
+      <ReviewShell onClose={close}>
+        {describing ? (
+          <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted">
+            <Loader2 className="h-4 w-4 animate-spin" /> Estimating from your
+            description…
+          </div>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void estimateFromText(describeText);
+            }}
+            className="space-y-4"
+          >
+            <header>
+              <p className="eyebrow">Scan</p>
+              <h1 className="text-[2rem] leading-none">Describe</h1>
+            </header>
+            {error && (
+              <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950/40">
+                {error}
+              </p>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="meal-text">What did you eat?</Label>
+              <textarea
+                id="meal-text"
+                value={describeText}
+                onChange={(e) => setDescribeText(e.target.value)}
+                rows={4}
+                placeholder="e.g. 2 หมั่นโถว, a bowl of pad kra pao with chicken over rice, and a glass of soy milk"
+                className="w-full rounded-xl border border-line bg-surface/60 p-3 text-sm text-ink outline-none placeholder:text-muted/60 focus:border-leaf"
+                autoFocus
+              />
+              <p className="text-xs text-muted">
+                Describe the dishes and rough amounts — the more specific, the
+                better the estimate.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={backToCamera}
+              >
+                {liveSupported ? "Back to camera" : "Back"}
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1"
+                disabled={!describeText.trim()}
+              >
+                <Sparkles className="h-4 w-4" /> Estimate
+              </Button>
+            </div>
+          </form>
+        )}
       </ReviewShell>
     );
   }
@@ -571,30 +710,14 @@ export function ScanCamera({
         </div>
       )}
 
-      {/* Bottom control row: Library · Capture(shutter) · Enter code. */}
+      {/* Bottom controls: the Capture shutter is the single prominent primary
+          action (center), with three lighter one-tap secondary actions beneath
+          it — Library, Describe, Enter code. */}
       <div
-        className="absolute inset-x-0 z-10 flex items-end justify-center gap-10 px-6"
-        style={{ bottom: "calc(env(safe-area-inset-bottom) + 30px)" }}
+        className="absolute inset-x-0 z-10 flex flex-col items-center gap-5 px-6"
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 26px)" }}
       >
-        {/* Library */}
-        <div className="flex flex-col items-center gap-1.5">
-          <label
-            aria-label="Pick a photo from your library"
-            className="flex h-[50px] w-[50px] cursor-pointer items-center justify-center rounded-full border border-cream/30 bg-black/35 text-cream backdrop-blur-md transition active:scale-90"
-          >
-            <ImageIcon className="h-5 w-5" />
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={onFile}
-            />
-          </label>
-          <span className="font-mono text-[10px] text-cream/60">Library</span>
-        </div>
-
-        {/* Capture shutter */}
+        {/* Capture shutter — primary */}
         <div className="flex flex-col items-center gap-2">
           <button
             type="button"
@@ -611,20 +734,58 @@ export function ScanCamera({
           <span className="text-[11px] font-semibold tracking-[0.02em] text-cream">Capture</span>
         </div>
 
-        {/* Enter code */}
-        <div className="flex flex-col items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => {
-              setError(null);
-              setMode("manual");
-            }}
-            aria-label="Enter the barcode manually"
-            className="flex h-[50px] w-[50px] items-center justify-center rounded-full border border-cream/30 bg-black/35 text-cream backdrop-blur-md transition active:scale-90"
-          >
-            <Keyboard className="h-5 w-5" />
-          </button>
-          <span className="font-mono text-[10px] text-cream/60">Enter code</span>
+        {/* Secondary actions — one tap each, visually lighter than Capture. */}
+        <div className="flex items-start justify-center gap-9">
+          {/* Library */}
+          <div className="flex flex-col items-center gap-1.5">
+            <label
+              aria-label="Pick a photo from your library"
+              className="flex h-[46px] w-[46px] cursor-pointer items-center justify-center rounded-full border border-cream/30 bg-black/35 text-cream backdrop-blur-md transition active:scale-90"
+            >
+              <ImageIcon className="h-5 w-5" />
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={onFile}
+              />
+            </label>
+            <span className="font-mono text-[10px] text-cream/60">Library</span>
+          </div>
+
+          {/* Describe (type) */}
+          <div className="flex flex-col items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setMealFromText(false);
+                setMode("describe");
+              }}
+              aria-label="Describe what you ate"
+              className="flex h-[46px] w-[46px] items-center justify-center rounded-full border border-cream/30 bg-black/35 text-cream backdrop-blur-md transition active:scale-90"
+            >
+              <PencilLine className="h-5 w-5" />
+            </button>
+            <span className="font-mono text-[10px] text-cream/60">Describe</span>
+          </div>
+
+          {/* Enter code */}
+          <div className="flex flex-col items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setMode("manual");
+              }}
+              aria-label="Enter the barcode manually"
+              className="flex h-[46px] w-[46px] items-center justify-center rounded-full border border-cream/30 bg-black/35 text-cream backdrop-blur-md transition active:scale-90"
+            >
+              <Keyboard className="h-5 w-5" />
+            </button>
+            <span className="font-mono text-[10px] text-cream/60">Enter code</span>
+          </div>
         </div>
       </div>
     </div>
