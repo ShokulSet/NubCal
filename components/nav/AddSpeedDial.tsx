@@ -9,8 +9,10 @@ import { cn } from "@/lib/utils";
 
 // Top-to-bottom display order (AI furthest from the +, Food nearest).
 // `dated` actions carry the viewed day so capture logs into the right date.
+// "Scan" now opens the unified camera (barcode + Capture + Library + Enter
+// code). Photo capture moved there, so "AI" lands on the text/Describe flow.
 const ACTIONS = [
-  { href: "/analyze", label: "AI", icon: Sparkles, dated: true },
+  { href: "/analyze?tab=text", label: "AI", icon: Sparkles, dated: true },
   { href: "/scan", label: "Scan", icon: ScanBarcode, dated: true },
   { href: "/foods", label: "Food", icon: Apple, dated: false },
 ];
@@ -44,7 +46,10 @@ export function AddSpeedDial() {
         {ACTIONS.map(({ href, label, icon: Icon, dated }, i) => {
           // Nearest item (Log, last in array) animates first.
           const delay = open ? (ACTIONS.length - 1 - i) * 45 : 0;
-          const target = dated && logDate ? `${href}?date=${logDate}` : href;
+          const target =
+            dated && logDate
+              ? `${href}${href.includes("?") ? "&" : "?"}date=${logDate}`
+              : href;
           return (
             <Link
               key={href}
