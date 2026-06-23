@@ -7,15 +7,16 @@ import { GoogleGenAI } from "@google/genai";
 // once a depleted prepay balance is hit).
 const apiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY;
 
-// flash-lite is the reliable free-tier default (gemini-2.5-flash frequently
-// 503s "high demand" on the free tier). Override with GEMINI_MODEL if desired.
-export const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite";
+// gemini-3.1-flash-lite is the default: newer/more capable than 2.5-flash-lite
+// and reliable on the free tier (gemini-2.5-flash frequently 503s "high demand"
+// there). Override with GEMINI_MODEL if desired.
+export const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-3.1-flash-lite";
 export const GEMINI_MODEL_ESCALATION =
   process.env.GEMINI_MODEL_ESCALATION ?? GEMINI_MODEL;
 
 // Free-tier models intermittently return 503 "high demand" / 429. Retry with
 // backoff, then fall back to a lighter model that usually has more headroom.
-const FALLBACK_MODEL = process.env.GEMINI_MODEL_FALLBACK ?? "gemini-2.0-flash";
+const FALLBACK_MODEL = process.env.GEMINI_MODEL_FALLBACK ?? "gemini-2.5-flash-lite";
 const MAX_ATTEMPTS = 2;
 
 function isTransient(message: string): boolean {
